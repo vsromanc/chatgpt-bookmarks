@@ -1,103 +1,138 @@
-// bookmark-button.ts
-export class BookmarkButton extends HTMLElement {
-    private preElement: HTMLElement | null = null;
-    private isBookmarked = false;
-    private index: number = 0;
-    constructor() {
-        super();
-        this.attachShadow({ mode: 'open' }); // Enable Shadow DOM for encapsulation
-    }
+import { LitElement, html, css } from 'lit';
+import { property, state } from 'lit/decorators.js';
 
-    connectedCallback() {
-        this.render();
-        this.addEventListener('click', this.handleClick);
-    }
+type BookmarkEventDetail = {
+    isBookmarked: boolean;
+    index: number;
+    codeLanguage?: string;
+    codeContent?: string;
+    accessToken?: string;
+};
 
-    disconnectedCallback() {
-        this.removeEventListener('click', this.handleClick);
+const BUTTON_LABELS = {
+    BOOKMARKED: '✓ Bookmarked',
+    DEFAULT: '⭐ Bookmark',
+} as const;
+
+export class BookmarkButton extends LitElement {
+    @property({ type: Number }) index = 0;
+    @state() isBookmarked = false;
+
+    static styles = css`
+    button {
+        border: none;
+        background-color: transparent;
+        background-image: none;
+        cursor: pointer;
+        color: #5d5d5d;
+    }
+  `;
+
+    render() {
+        return html`
+      <button @click=${this.handleClick}>
+        ${this.isBookmarked ? BUTTON_LABELS.BOOKMARKED : BUTTON_LABELS.DEFAULT}
+      </button>
+    `;
     }
 
     private async handleClick() {
         this.isBookmarked = !this.isBookmarked;
-        this.updateButtonText();
+        this.dispatchBookmarkEvent();
+    }
 
-        const code = this.closest('pre')?.querySelector('code');
-        if (code) {
-            const codeLanguage = Array.from(code.classList).find(className => className.startsWith('language-'));
-            const codeContent = code.innerHTML;
+    private async dispatchBookmarkEvent() {
+        const codeDetails = this.getCodeDetails();
+        const accessToken = await this.getAccessToken();
 
-            this.dispatchEvent(new CustomEvent('toggle', {
-                detail: { isBookmarked: this.isBookmarked, index: this.index, codeLanguage, codeContent, accessToken: await this.getAccessToken() },
-                bubbles: true,
-                composed: true
-            }));
+        this.dispatchEvent(new CustomEvent<BookmarkEventDetail>('toggle', {
+            detail: {
+                isBookmarked: this.isBookmarked,
+                index: this.index,
+                ...codeDetails,
+                accessToken,
+            },
+            bubbles: true,
+            composed: true
+        }));
+    }
+
+    private getCodeDetails() {
+        const codeElement = this.closest('pre')?.querySelector('code');
+        if (!codeElement) return {};
+
+        return {
+            codeLanguage: this.getCodeLanguage(codeElement),
+            codeContent: codeElement.innerHTML,
+        };
+    }
+
+    private getCodeLanguage(codeElement: HTMLElement) {
+        return Array.from(codeElement.classList)
+            .find(className => className.startsWith('language-'))
+            ?.replace('language-', '');
+    }
+
+    private async getAccessToken(): Promise<string | undefined> {
+        try {
+            return (window as any).__reactRouterContext?.state.loaderData.root.clientBootstrap.session.accessToken;
+        } catch (error) {
+            console.error('Failed to retrieve access token:', error);
+            return undefined;
         }
     }
+}
 
-    private async getAccessToken() {
-        const accessToken = (window as any).__reactRouterContext.state.loaderData.root.clientBootstrap.session.accessToken as string;
-        return accessToken;
-    }
-
-    private updateButtonText() {
-        const button = this.shadowRoot!.querySelector('button');
-        if (button) {
-            button.textContent = this.isBookmarked ? '✓ Bookmarked' : '⭐ Bookmark';
-        }
-    }
-
-    private render() {
-        this.shadowRoot!.innerHTML = `
-            <style>
-                button {
-                    border: none;
-                    background-color: transparent;
-                    background-image: none;
-                    cursor: pointer;
-                    color: #5d5d5d;
-                }
-            </style>
-            <button>${this.isBookmarked ? '✓ Bookmarked' : '⭐ Bookmark'}</button>
-        `;
-    }
-
-    // Setter for the associated <pre> element
-    setPreElement(preElement: HTMLElement) {
-        this.preElement = preElement;
-    }
-
+// DOM Utilities
+export class BookmarkManager {
     static initialize() {
+        // Initialize component
         customElements.define('bookmark-button', BookmarkButton);
     }
 
-    // Static method to add the bookmark button to a code block
-    static addToCodeBlock(preElement: HTMLElement, index: number, isBookmarked: boolean) {
-        // Check if the button already exists
-        if (preElement.previousElementSibling?.querySelector('bookmark-button')) {
-            return;
-        }
+    static async addBookmarkButtons(bookmarks: number[]) {
+        const codeBlocks = document.querySelectorAll('pre[data-code-index]');
 
-        // Find the copy button within the container
-        const copyButton = preElement.querySelector('button[aria-label="Copy"]');
-        if (!copyButton) {
-            return;
-        }
+        codeBlocks.forEach((codeBlock, index) => {
+            if (this.hasExistingBookmarkButton(codeBlock)) return;
 
-        // Create a span to wrap the bookmark button
-        const bookmarkButtonWrapper = document.createElement('span');
-        bookmarkButtonWrapper.classList.add('bookmark-button-wrapper');
+            const copyButton = codeBlock.querySelector('button[aria-label="Copy"]');
+            if (!copyButton) return;
 
-        // Create and append the bookmark button
-        const bookmarkButton = document.createElement('bookmark-button') as BookmarkButton;
-        bookmarkButton.index = index;
-        bookmarkButton.isBookmarked = isBookmarked;
-        bookmarkButton.classList.add(...Array.from(copyButton.classList));
-        bookmarkButton.updateButtonText();
-        bookmarkButtonWrapper.appendChild(bookmarkButton);
+            const bookmarkButton = this.createBookmarkButton(copyButton, index, bookmarks);
+            this.insertBookmarkButton(bookmarkButton, copyButton);
+        });
+    }
 
-        // Insert the bookmark button wrapper before the copy button
-        copyButton.closest('div.flex')?.insertBefore(bookmarkButtonWrapper, copyButton.closest('span'));
+    private static hasExistingBookmarkButton(codeBlock: Element) {
+        return codeBlock.previousElementSibling?.querySelector('bookmark-button');
+    }
 
-        return bookmarkButton
+    private static createBookmarkButton(copyButton: Element, index: number, bookmarks: number[]) {
+        const button = document.createElement('bookmark-button') as BookmarkButton;
+        button.index = index;
+        button.isBookmarked = bookmarks.includes(index);
+        button.classList.add(...Array.from(copyButton.classList));
+        return button;
+    }
+
+    private static insertBookmarkButton(button: BookmarkButton, referenceElement: Element) {
+        const wrapper = document.createElement('span');
+        wrapper.className = 'bookmark-button-wrapper';
+        wrapper.appendChild(button);
+
+        referenceElement.closest('div.flex')?.insertBefore(
+            wrapper,
+            referenceElement.closest('span')
+        );
+    }
+
+    static handleToggleBookmark(event: CustomEvent<BookmarkEventDetail>) {
+        const { isBookmarked, index, codeLanguage, codeContent, accessToken } = event.detail;
+
+        window.postMessage({
+            type: 'TOGGLE_BOOKMARK',
+            payload: { isBookmarked, index, codeLanguage, codeContent, accessToken }
+        }, '*');
     }
 }
