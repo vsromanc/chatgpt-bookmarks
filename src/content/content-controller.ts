@@ -121,6 +121,7 @@ export class ContentController {
             if (request.type === 'NAVIGATE_TO_CODE_BLOCK') {
                 // navigate to code block
                 console.log('NAVIGATE_TO_CODE_BLOCK', request.payload);
+                console.log('request.payload.bookmarkIndex', request);
                 const pre = document.querySelector(`pre[data-code-index="${request.payload.bookmarkIndex}"]`);
                 scrollAndHighlight(pre as HTMLElement);
                 console.log('pre', pre);

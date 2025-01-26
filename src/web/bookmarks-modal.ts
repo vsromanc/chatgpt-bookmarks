@@ -125,16 +125,21 @@ export class BookmarksModal extends LitElement {
   }
 
   private selectBookmark(chatId: string, bookmarkId: number) {
-    console.log('selectBookmark', chatId, bookmarkId);
     const bookmark = this.bookmarksData[chatId]?.bookmarksData[bookmarkId];
     this.selectedCodeContent = bookmark?.codeContent || 'Content not available';
+  }
+
+  private handleBackgroundClick(e: MouseEvent) {
+    if (e.target === e.currentTarget) {
+      this.hide();
+    }
   }
 
   render() {
     const grouped = this.groupBookmarks();
 
     return html`
-      <div class="modal" ?hidden=${!this.isOpen}>
+      <div class="modal" ?hidden=${!this.isOpen} @click=${this.handleBackgroundClick} @close-modal=${this.hide}>
         <div class="modal-content" @click=${(e: Event) => e.stopPropagation()}>
           <div class="sidebar">
             ${grouped.map(group => html`

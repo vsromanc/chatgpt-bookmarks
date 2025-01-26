@@ -76,13 +76,19 @@ export class BookmarkItem extends LitElement {
 
   private handleOpenChat(e: Event) {
     e.stopPropagation();
+
     window.postMessage({
       type: 'OPEN_CHAT',
       payload: {
         chatId: this.chatId,
-        bookmarkId: this.bookmarkId,
+        bookmarkIndex: this.bookmarkId,
         url: `/c/${this.chatId.split('chat-')[1]}`
       }
     }, '*');
+
+    this.dispatchEvent(new CustomEvent('close-modal', {
+      bubbles: true,    // Important for event propagation
+      composed: true    // Cross shadow DOM boundaries
+    }));
   }
 }
