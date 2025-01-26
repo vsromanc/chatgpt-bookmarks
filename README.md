@@ -1,6 +1,9 @@
-# ChatGPT Code Blocks
+# ChatGPT Bookmarks
 
 ## MVP
 
-- [x] Navbar with filenames, ability to navigate between code blocks, and rename code blocks
-- [ ] Whole view of all code blocks
+- [x] Add/Remove code block to bookmarks
+- [ ] Bookmarks modal
+- [ ] Navigate to code block from bookmarks modal
+- [ ] Search in bookmarks modal
+- [ ] Rename bookmark
