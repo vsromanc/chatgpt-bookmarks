@@ -1,0 +1,37 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug Chrome Extension (Watch)",
+            "type": "chrome",
+            "request": "launch",
+            "url": "about:blank",
+            "webRoot": "${workspaceFolder}/src",
+            "runtimeExecutable": "chrome",
+            "runtimeArgs": [
+                "--load-extension=${workspaceFolder}/dist",
+                "--disable-extensions-except=${workspaceFolder}/dist",
+                "--remote-debugging-port=9222"
+            ],
+            "sourceMaps": true,
+            "preLaunchTask": "npm: watch",
+            "outFiles": ["${workspaceFolder}/dist/**/*.js"]
+        },
+        {
+            "name": "Debug Chrome Extension",
+            "type": "chrome",
+            "request": "launch",
+            "url": "about:blank",
+            "webRoot": "${workspaceFolder}/src",
+            "runtimeExecutable": "chrome",
+            "runtimeArgs": [
+                "--load-extension=${workspaceFolder}/dist",
+                "--disable-extensions-except=${workspaceFolder}/dist",
+                "--remote-debugging-port=9222"
+            ],
+            "sourceMaps": true,
+            "preLaunchTask": "npm: build",
+            "outFiles": ["${workspaceFolder}/dist/**/*.js"]
+        }
+    ]
+}

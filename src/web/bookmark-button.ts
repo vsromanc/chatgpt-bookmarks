@@ -1,89 +1,58 @@
-import { html, css } from 'lit';
-import { BaseElement } from './base';
-import { property, state } from 'lit/decorators.js';
-
-type BookmarkEventDetail = {
-    isBookmarked: boolean;
-    index: number;
-    codeLanguage?: string;
-    codeContent?: string;
-    accessToken?: string;
-};
+import { html, css } from 'lit'
+import { BaseElement } from './base'
+import { property, state } from 'lit/decorators.js'
+import { EVENTS } from '../glossary'
 
 const BUTTON_LABELS = {
     BOOKMARKED: '✓ Bookmarked',
     DEFAULT: '⭐ Bookmark',
-} as const;
+} as const
 
 export class BookmarkButton extends BaseElement {
-    @property({ type: Number }) index = 0;
-    @state() isBookmarked = false;
+    @property({ type: Number }) index = 0
+    @state() isBookmarked = false
 
     get componentName() {
-        return `${this.tagName.toLowerCase()}-${this.index}`;
+        return `${this.tagName.toLowerCase()}-${this.index}`
     }
 
     static styles = css`
-    button {
-        border: none;
-        background-color: transparent;
-        background-image: none;
-        cursor: pointer;
-        color: #5d5d5d;
-    }
-  `;
+        button {
+            border: none;
+            background-color: transparent;
+            background-image: none;
+            cursor: pointer;
+            color: #5d5d5d;
+        }
+    `
 
     render() {
         return html`
-      <button @click=${this.handleClick}>
-        ${this.isBookmarked ? BUTTON_LABELS.BOOKMARKED : BUTTON_LABELS.DEFAULT}
-      </button>
-    `;
+            <button @click=${this.handleClick}>
+                ${this.isBookmarked ? BUTTON_LABELS.BOOKMARKED : BUTTON_LABELS.DEFAULT}
+            </button>
+        `
     }
 
     private async handleClick() {
-        this.isBookmarked = !this.isBookmarked;
-        this.dispatchBookmarkEvent();
+        this.isBookmarked = !this.isBookmarked
+        BookmarkManager.updateBookmarkState(this.index, this.isBookmarked, this.getLanguageAndContent())
     }
 
-    private async dispatchBookmarkEvent() {
-        const codeDetails = this.getCodeDetails();
-        const accessToken = await this.getAccessToken();
-
-        this.dispatch<BookmarkEventDetail>('toggle', {
-            isBookmarked: this.isBookmarked,
-            index: this.index,
-            ...codeDetails,
-            accessToken,
-        }, {
-            bubbles: true,
-            composed: true
-        });
-    }
-
-    private getCodeDetails() {
-        const codeElement = this.closest('pre')?.querySelector('code');
-        if (!codeElement) return {};
+    private getLanguageAndContent() {
+        const codeElement = this.closest('pre')?.querySelector('code')
+        if (!codeElement) return {}
 
         return {
-            codeLanguage: this.getCodeLanguage(codeElement),
-            codeContent: codeElement.innerHTML,
-        };
+            lang: this.getCodeLanguage(codeElement),
+            content: codeElement.innerHTML,
+        }
     }
 
     private getCodeLanguage(codeElement: HTMLElement) {
         return Array.from(codeElement.classList)
             .find(className => className.startsWith('language-'))
-            ?.replace('language-', '');
-    }
-
-    private async getAccessToken(): Promise<string | undefined> {
-        try {
-            return (window as any).__reactRouterContext?.state.loaderData.root.clientBootstrap.session.accessToken;
-        } catch (error) {
-            console.error('Failed to retrieve access token:', error);
-            return undefined;
-        }
+            ?.replace('language-', '')
     }
 }
 
@@ -91,52 +60,67 @@ export class BookmarkButton extends BaseElement {
 export class BookmarkManager {
     static initialize() {
         // Initialize component
-        customElements.define('bookmark-button', BookmarkButton);
+        customElements.define('bookmark-button', BookmarkButton)
     }
 
     static async addBookmarkButtons(bookmarks: number[]) {
-        const codeBlocks = document.querySelectorAll('pre[data-code-index]');
+        const codeBlocks = document.querySelectorAll('pre[data-code-index]')
 
         codeBlocks.forEach((codeBlock, index) => {
-            if (this.hasExistingBookmarkButton(codeBlock)) return;
+            if (this.hasExistingBookmarkButton(codeBlock)) return
 
-            const copyButton = codeBlock.querySelector('button[aria-label="Copy"]');
-            if (!copyButton) return;
+            const copyButton = codeBlock.querySelector('button[aria-label="Copy"]')
+            if (!copyButton) return
 
-            const bookmarkButton = this.createBookmarkButton(copyButton, index, bookmarks);
-            this.insertBookmarkButton(bookmarkButton, copyButton);
-        });
+            const bookmarkButton = this.createBookmarkButton(copyButton, index, bookmarks)
+            this.insertBookmarkButton(bookmarkButton, copyButton)
+        })
     }
 
     private static hasExistingBookmarkButton(codeBlock: Element) {
-        return codeBlock.previousElementSibling?.querySelector('bookmark-button');
+        return codeBlock.previousElementSibling?.querySelector('bookmark-button')
     }
 
     private static createBookmarkButton(copyButton: Element, index: number, bookmarks: number[]) {
-        const button = document.createElement('bookmark-button') as BookmarkButton;
-        button.index = index;
-        button.isBookmarked = bookmarks.includes(index);
-        button.classList.add(...Array.from(copyButton.classList));
-        return button;
+        const button = document.createElement('bookmark-button') as BookmarkButton
+        button.index = index
+        button.isBookmarked = bookmarks.includes(index)
+        button.classList.add(...Array.from(copyButton.classList))
+        return button
     }
 
     private static insertBookmarkButton(button: BookmarkButton, referenceElement: Element) {
-        const wrapper = document.createElement('span');
-        wrapper.className = 'bookmark-button-wrapper';
-        wrapper.appendChild(button);
+        const wrapper = document.createElement('span')
+        wrapper.className = 'bookmark-button-wrapper'
+        wrapper.appendChild(button)
 
-        referenceElement.closest('div.flex')?.insertBefore(
-            wrapper,
-            referenceElement.closest('span')
-        );
+        referenceElement.closest('div.flex')?.insertBefore(wrapper, referenceElement.closest('span'))
     }
 
-    static handleToggleBookmark(event: CustomEvent<BookmarkEventDetail>) {
-        const { isBookmarked, index, codeLanguage, codeContent, accessToken } = event.detail;
+    static updateBookmarkState(
+        index: number,
+        isBookmarked: boolean,
+        languageAndContent?: { lang?: string; content?: string }
+    ) {
+        console.log('Update bookmark state', { index, isBookmarked, languageAndContent })
+        const accessToken = this.getAccessToken()
+        if (!accessToken) return
 
-        window.postMessage({
-            type: 'TOGGLE_BOOKMARK',
-            payload: { isBookmarked, index, codeLanguage, codeContent, accessToken }
-        }, '*');
+        window.postMessage(
+            {
+                type: EVENTS.TOGGLE_BOOKMARK,
+                payload: {
+                    accessToken,
+                    index,
+                    isBookmarked,
+                    ...languageAndContent,
+                },
+            },
+            '*'
+        )
+    }
+
+    private static getAccessToken(): Promise<string | undefined> {
+        return (window as any).__reactRouterContext?.state.loaderData.root.clientBootstrap.session.accessToken
     }
 }

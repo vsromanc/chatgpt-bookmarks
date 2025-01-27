@@ -1,8 +1,8 @@
 export class OpenBookmarksButton extends HTMLElement {
-  constructor() {
-    super();
-    this.attachShadow({ mode: 'open' });
-    this.shadowRoot!.innerHTML = `
+    constructor() {
+        super()
+        this.attachShadow({ mode: 'open' })
+        this.shadowRoot!.innerHTML = `
           <style>
             .btn {
               all: unset;
@@ -54,23 +54,23 @@ export class OpenBookmarksButton extends HTMLElement {
               <div class="badge"></div>
             </span>
           </button>
-        `;
-  }
-
-  static injectButton() {
-    const button = document.createElement('open-bookmarks-modal');
-
-    // Find the best insertion point using stable selectors
-    const shareButton = document.querySelector('[data-testid="share-chat-button"]');
-    const profileButton = document.querySelector('[data-testid="profile-button"]');
-
-    const insertionPoint = shareButton ?? profileButton;
-    if (insertionPoint) {
-      insertionPoint.insertAdjacentElement('beforebegin', button);
-    } else {
-      document.querySelector('.draggable.sticky.top-0')?.appendChild(button);
+        `
     }
 
-    return button;
-  }
+    static injectButton() {
+        const button = document.createElement('open-bookmarks-modal')
+
+        // Find the best insertion point using stable selectors
+        const shareButton = document.querySelector('[data-testid="share-chat-button"]')
+        const profileButton = document.querySelector('[data-testid="profile-button"]')
+
+        const insertionPoint = shareButton ?? profileButton
+        if (insertionPoint) {
+            insertionPoint.insertAdjacentElement('beforebegin', button)
+        } else {
+            document.querySelector('.draggable.sticky.top-0')?.appendChild(button)
+        }
+
+        return button
+    }
 }

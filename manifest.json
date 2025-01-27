@@ -1,48 +1,40 @@
 {
-  "manifest_version": 3,
-  "name": "GPT Codenav",
-  "version": "1.0.0",
-  "description": "Browser Extension with background, content, and web scripts",
-  "icons": {
-    "16": "assets/16.png",
-    "48": "assets/48.png",
-    "128": "assets/128.png"
-  },
-  "permissions": [
-    "scripting",
-    "activeTab",
-    "storage",
-    "cookies"
-  ],
-  "host_permissions": [
-    "https://chatgpt.com/*",
-    "https://chat.com/*"
-  ],
-  "background": {
-    "service_worker": "dist/background.js"
-  },
-  "content_scripts": [
-    {
-      "matches": [
-        "https://chatgpt.com/*",
-        "https://chat.com/*"
-      ],
-      "js": [
-        "dist/content.js"
-      ]
+    "manifest_version": 3,
+    "name": "GPT Codenav",
+    "version": "1.0.0",
+    "description": "Browser Extension with background, content, and web scripts",
+    "icons": {
+        "16": "assets/16.png",
+        "48": "assets/48.png",
+        "128": "assets/128.png"
+    },
+    "permissions": ["scripting", "activeTab", "storage", "cookies", "webRequest"],
+    "host_permissions": ["https://chatgpt.com/*", "https://chat.com/*"],
+    "background": {
+        "service_worker": "dist/background.js"
+    },
+    "commands": {
+        "reload-extension": {
+            "suggested_key": {
+                "default": "Ctrl+Shift+9",
+                "mac": "Command+Shift+9"
+            },
+            "description": "Reload the extension"
+        }
+    },
+    "content_scripts": [
+        {
+            "matches": ["https://chatgpt.com/*", "https://chat.com/*"],
+            "js": ["dist/content.js"]
+        }
+    ],
+    "web_accessible_resources": [
+        {
+            "resources": ["dist/web.js"],
+            "matches": ["<all_urls>"]
+        }
+    ],
+    "content_security_policy": {
+        "extension_pages": "script-src 'self'; object-src 'self'"
     }
-  ],
-  "web_accessible_resources": [
-    {
-      "resources": [
-        "dist/web.js"
-      ],
-      "matches": [
-        "<all_urls>"
-      ]
-    }
-  ],
-  "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'"
-  }
 }
