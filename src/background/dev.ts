@@ -1,7 +1,6 @@
 if (process.env.NODE_ENV === 'development') {
     // reload extension on command
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-        console.log('request', request)
         if (request.type === 'reload-extension') {
             chrome.runtime.reload()
         }

@@ -33,10 +33,6 @@ export class ContentController {
         const currentHash = this.generateHash(blocks)
 
         if (currentHash !== this.lastSentHash) {
-            blocks.forEach((b, index) => {
-                b.element.setAttribute('data-code-index', index.toString())
-            })
-
             window.postMessage(
                 {
                     type: EVENTS.CODE_BLOCKS_UPDATE,
@@ -81,8 +77,9 @@ export class ContentController {
         switch (request.type) {
             case EVENTS.NAVIGATE_TO_CODE_BLOCK:
                 log.info('Navigate to code block', request.payload)
-                const pre = document.querySelector(`pre[data-code-index="${request.payload.bookmarkIndex}"]`)
-                scrollAndHighlight(pre as HTMLElement)
+                const index = parseInt(request.payload.bookmarkIndex) + 1
+                const pre = document.querySelector(`pre:nth-of-type(${index})`) as HTMLElement
+                scrollAndHighlight(pre)
                 break
             case EVENTS.CONVERSATION_DATA:
                 log.debug('Conversation data', request.payload)

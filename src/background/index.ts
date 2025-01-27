@@ -46,7 +46,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 chrome.webRequest.onCompleted.addListener(
     details => {
         if (endsWithUuid(details.url)) {
-            log.info('conversation data loaded', details)
+            log.info('Conversation request', details)
             chrome.tabs.sendMessage(details.tabId, {
                 type: EVENTS.CONVERSATION_DATA,
                 payload: {

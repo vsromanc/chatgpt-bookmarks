@@ -5,7 +5,7 @@ import { EVENTS } from '../glossary'
 
 const BUTTON_LABELS = {
     BOOKMARKED: '✓ Bookmarked',
-    DEFAULT: '⭐ Bookmark',
+    DEFAULT: '✭ Bookmark',
 } as const
 
 export class BookmarkButton extends BaseElement {
@@ -22,7 +22,9 @@ export class BookmarkButton extends BaseElement {
             background-color: transparent;
             background-image: none;
             cursor: pointer;
-            color: #5d5d5d;
+            color: #b4b4b4;
+            line-height: 0;
+            display: flex;
         }
     `
 
@@ -64,9 +66,13 @@ export class BookmarkManager {
     }
 
     static async addBookmarkButtons(bookmarks: number[]) {
-        const codeBlocks = document.querySelectorAll('pre[data-code-index]')
+        const codeBlocks = document.querySelectorAll('pre')
+
+        console.log('codeBlocks', codeBlocks)
 
         codeBlocks.forEach((codeBlock, index) => {
+            if (!codeBlock.closest('article[data-testid^="conversation-turn-"]')) return
+
             if (this.hasExistingBookmarkButton(codeBlock)) return
 
             const copyButton = codeBlock.querySelector('button[aria-label="Copy"]')
@@ -78,7 +84,7 @@ export class BookmarkManager {
     }
 
     private static hasExistingBookmarkButton(codeBlock: Element) {
-        return codeBlock.previousElementSibling?.querySelector('bookmark-button')
+        return codeBlock.contains(codeBlock.querySelector('bookmark-button'))
     }
 
     private static createBookmarkButton(copyButton: Element, index: number, bookmarks: number[]) {
@@ -102,7 +108,6 @@ export class BookmarkManager {
         isBookmarked: boolean,
         languageAndContent?: { lang?: string; content?: string }
     ) {
-        console.log('Update bookmark state', { index, isBookmarked, languageAndContent })
         const accessToken = this.getAccessToken()
         if (!accessToken) return
 
