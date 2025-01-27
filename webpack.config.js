@@ -1,5 +1,8 @@
+const Dotenv = require('dotenv-webpack');
+const DefinePlugin = require('webpack').DefinePlugin;
 const path = require('path');
 const CopyPlugin = require('copy-webpack-plugin');
+const manifest = require('./manifest.json');
 
 module.exports = {
   mode: 'development',
@@ -15,7 +18,7 @@ module.exports = {
     clean: true
   },
   resolve: {
-    extensions: ['.ts', '.js']
+    extensions: ['.ts', '.js'],
   },
   module: {
     rules: [
@@ -39,6 +42,10 @@ module.exports = {
     ]
   },
   plugins: [
+    new Dotenv(),
+    new DefinePlugin({
+      'process.env.EXTENSION_VERSION': JSON.stringify(manifest.version),
+    }),
     new CopyPlugin({
       patterns: [
         { from: "assets", to: "assets" }

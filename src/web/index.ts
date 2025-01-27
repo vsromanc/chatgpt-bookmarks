@@ -1,7 +1,6 @@
 import { BookmarkManager } from './bookmark-button';
 import { OpenBookmarksButton } from './open-bookmarks';
 import type { BookmarksModal } from './bookmarks-modal';
-
 import './bookmarks-modal';
 import './bookmark-group';
 import './bookmark-item';

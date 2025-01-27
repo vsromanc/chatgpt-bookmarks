@@ -1,8 +1,8 @@
+import log from '../lib/loglevel';
 import { extractCodeBlocks, CodeBlock, hasCodeBlocks } from './code-extractor';
 import { extractSidebarTitle } from './title-extractor';
 import { StorageService } from '../common/storage-service';
 import { extractChatId } from '../common/url-utils';
-import { sendMessage } from '../common/communication';
 import { scrollAndHighlight } from '../web/misc';
 
 export class ContentController {
@@ -119,12 +119,9 @@ export class ContentController {
 
         chrome.runtime.onMessage.addListener((request) => {
             if (request.type === 'NAVIGATE_TO_CODE_BLOCK') {
-                // navigate to code block
-                console.log('NAVIGATE_TO_CODE_BLOCK', request.payload);
-                console.log('request.payload.bookmarkIndex', request);
+                log.info('Navigate to code block', request.payload);
                 const pre = document.querySelector(`pre[data-code-index="${request.payload.bookmarkIndex}"]`);
                 scrollAndHighlight(pre as HTMLElement);
-                console.log('pre', pre);
             }
         });
     }

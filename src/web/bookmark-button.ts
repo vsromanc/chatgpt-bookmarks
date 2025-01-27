@@ -1,4 +1,5 @@
-import { LitElement, html, css } from 'lit';
+import { html, css } from 'lit';
+import { BaseElement } from './base';
 import { property, state } from 'lit/decorators.js';
 
 type BookmarkEventDetail = {
@@ -14,9 +15,13 @@ const BUTTON_LABELS = {
     DEFAULT: '⭐ Bookmark',
 } as const;
 
-export class BookmarkButton extends LitElement {
+export class BookmarkButton extends BaseElement {
     @property({ type: Number }) index = 0;
     @state() isBookmarked = false;
+
+    get componentName() {
+        return `${this.tagName.toLowerCase()}-${this.index}`;
+    }
 
     static styles = css`
     button {
@@ -45,16 +50,15 @@ export class BookmarkButton extends LitElement {
         const codeDetails = this.getCodeDetails();
         const accessToken = await this.getAccessToken();
 
-        this.dispatchEvent(new CustomEvent<BookmarkEventDetail>('toggle', {
-            detail: {
-                isBookmarked: this.isBookmarked,
-                index: this.index,
-                ...codeDetails,
-                accessToken,
-            },
+        this.dispatch<BookmarkEventDetail>('toggle', {
+            isBookmarked: this.isBookmarked,
+            index: this.index,
+            ...codeDetails,
+            accessToken,
+        }, {
             bubbles: true,
             composed: true
-        }));
+        });
     }
 
     private getCodeDetails() {

@@ -65,7 +65,6 @@ export class OpenBookmarksButton extends HTMLElement {
     const profileButton = document.querySelector('[data-testid="profile-button"]');
 
     const insertionPoint = shareButton ?? profileButton;
-    console.log('insertionPoint', insertionPoint);
     if (insertionPoint) {
       insertionPoint.insertAdjacentElement('beforebegin', button);
     } else {
