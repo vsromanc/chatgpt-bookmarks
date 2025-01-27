@@ -130,17 +130,15 @@ export class ContentController {
                 '*'
             )
         } else if (event.source === window && event.data.type === EVENTS.OPEN_CHAT) {
-            const chatId = event.data.payload.chatId
-            const bookmarkIndex = event.data.payload.bookmarkIndex
-            const url = event.data.payload.url
+            const { chatId, bookmarkIndex, url } = event.data.payload
 
             const reply = await chrome.runtime.sendMessage({
-                type: 'OPEN_CHAT',
+                type: EVENTS.OPEN_CHAT,
                 payload: { chatId, bookmarkIndex, url },
             })
+
             if (reply.status === 'received') {
-                const href = `/c/${chatId.split('chat-')[1]}`
-                const sidebarTag = document.querySelector(`a[href="${href}"]`)
+                const sidebarTag = document.querySelector(`a[href="${url}"]`)
                 if (sidebarTag) {
                     ;(sidebarTag as HTMLElement).click()
                 }

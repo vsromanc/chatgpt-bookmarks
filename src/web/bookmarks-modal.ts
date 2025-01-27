@@ -4,18 +4,6 @@ import { customElement, property, state } from 'lit/decorators.js'
 import { unsafeHTML } from 'lit/directives/unsafe-html.js'
 import { BaseElement } from './base'
 
-type Bookmark = {
-    chatTitle: string
-    codeContent: string
-    codeLanguage: string
-    metadata: { name: string }
-}
-
-type ChatBookmarks = {
-    bookmarks: number[]
-    bookmarksData: Record<string, Bookmark>
-}
-
 @customElement('bookmarks-modal')
 export class BookmarksModal extends BaseElement {
     static styles = css`
@@ -120,7 +108,18 @@ export class BookmarksModal extends BaseElement {
     `
 
     @property({ type: Object })
-    bookmarksData: Record<string, ChatBookmarks> = {}
+    bookmarksData: {
+        [chatId: string]: {
+            title: string
+            bookmarks: {
+                [key: string]: {
+                    lang: string
+                    content: string
+                    metadata: any
+                }
+            }
+        }
+    } = {}
 
     @state()
     private isOpen = false
@@ -143,7 +142,6 @@ export class BookmarksModal extends BaseElement {
 
     private handleWindowMessage = (event: MessageEvent) => {
         if (event.data.type === 'ALL_BOOKMARKS_DATA') {
-            this.log('Bookmarks data received', event.data.payload)
             this.bookmarksData = event.data.payload
             this.requestUpdate()
         }
@@ -159,10 +157,10 @@ export class BookmarksModal extends BaseElement {
 
     private selectBookmark(chatId: string, bookmarkId: number) {
         this.debug('Show bookmark content:', chatId, bookmarkId)
-        const bookmark = this.bookmarksData[chatId]?.bookmarksData[bookmarkId]
+        const bookmark = this.bookmarksData[chatId].bookmarks[bookmarkId]
 
-        if (bookmark?.codeContent) {
-            this.selectedCodeContent = bookmark?.codeContent
+        if (bookmark?.content) {
+            this.selectedCodeContent = bookmark?.content
         } else {
             this.selectedCodeContent = 'Content not available'
             this.error('Bookmark content not available', bookmark)
@@ -177,19 +175,19 @@ export class BookmarksModal extends BaseElement {
     }
 
     render() {
-        const grouped = this.groupBookmarks()
-
+        const chatKeys = Object.keys(this.bookmarksData)
         return html`
             <div class="modal" ?hidden=${!this.isOpen} @click=${this.handleBackgroundClick} @close-modal=${this.hide}>
                 <div class="modal-content" @click=${(e: Event) => e.stopPropagation()}>
                     <div class="sidebar">
-                        ${grouped.map(
-                            group => html`
+                        ${chatKeys.map(
+                            chatId => html`
                                 <bookmark-group
-                                    .title=${group.title}
-                                    .chats=${group.chats}
-                                    .expanded=${this.expandedGroups.has(group.title)}
-                                    @group-toggled=${() => this.toggleGroup(group.title)}
+                                    .chatId=${chatId}
+                                    .title=${this.bookmarksData[chatId].title}
+                                    .bookmarks=${this.bookmarksData[chatId].bookmarks}
+                                    .expanded=${this.expandedGroups.has(chatId)}
+                                    @group-toggled=${() => this.toggleGroup(chatId)}
                                     @bookmark-selected=${(e: CustomEvent) =>
                                         this.selectBookmark(e.detail.chatId, e.detail.bookmarkId)}
                                 ></bookmark-group>
@@ -203,23 +201,6 @@ export class BookmarksModal extends BaseElement {
                 </div>
             </div>
         `
-    }
-
-    private groupBookmarks() {
-        const groups = new Map<string, Array<{ chatId: string } & ChatBookmarks>>()
-
-        for (const [chatId, chatData] of Object.entries(this.bookmarksData)) {
-            const firstBookmark = chatData.bookmarksData[chatData.bookmarks[0]]
-            const groupTitle = firstBookmark?.chatTitle || chatId
-
-            if (!groups.has(groupTitle)) groups.set(groupTitle, [])
-            groups.get(groupTitle)?.push({ chatId, ...chatData })
-        }
-
-        return Array.from(groups.entries()).map(([title, chats]) => ({
-            title,
-            chats: chats ?? [],
-        }))
     }
 
     show() {

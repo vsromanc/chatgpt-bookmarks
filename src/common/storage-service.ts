@@ -63,33 +63,48 @@ export class StorageService {
         return result
     }
 
-    public static async getAllBookmarks(): Promise<{
-        [chatId: string]: {
-            bookmarks: number[]
-            bookmarksData: { [key: number]: { lang: string; content: string; inferredMetadata: any } }
-        }
-    }> {
-        const data = await chrome.storage.local.get(null)
-        return Object.keys(data).reduce(
-            (
-                acc: {
-                    [chatId: string]: {
-                        bookmarks: number[]
-                        bookmarksData: { [key: number]: any }
+    public static async getAllBookmarks() {
+        const input = await chrome.storage.local.get(null)
+
+        const result: {
+            [chatId: string]: {
+                title: string
+                bookmarks: {
+                    [key: string]: {
+                        lang: string
+                        content: string
+                        metadata: any
                     }
-                },
-                key
-            ) => {
-                const chatId = key.split('::')[0]
-                if (!acc[chatId]) {
-                    acc[chatId] = { bookmarks: [], bookmarksData: {} }
                 }
-                const bookmarkIndex = parseInt(key.split('::')[1].split('-')[1])
-                acc[chatId].bookmarks.push(bookmarkIndex)
-                acc[chatId].bookmarksData[bookmarkIndex] = data[key]
-                return acc
-            },
-            {}
-        )
+            }
+        } = {}
+
+        // Process chat entries first
+        Object.entries(input).forEach(([key, value]) => {
+            if (!key.includes('::bookmark-')) {
+                const chatId = key.substring(5) // Remove 'chat-' prefix
+                result[chatId] = {
+                    title: value.title,
+                    bookmarks: {},
+                }
+            }
+        })
+
+        // Process bookmark entries
+        Object.entries(input).forEach(([key, value]) => {
+            if (key.includes('::bookmark-')) {
+                const [chatKeyPart, bookmarkId] = key.split('::bookmark-')
+                const chatId = chatKeyPart.substring(5) // Extract UUID from chat part
+                if (result[chatId] && value.isBookmarked) {
+                    // Omit isBookmarked property and add remaining fields
+                    const { isBookmarked, ...bookmarkData } = value
+                    result[chatId].bookmarks[bookmarkId] = bookmarkData
+                }
+            }
+        })
+
+        log.debug('Get all bookmarks', result)
+
+        return result
     }
 }

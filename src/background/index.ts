@@ -2,13 +2,6 @@ import log from '../lib/loglevel'
 import { EVENTS } from '../glossary'
 import './dev'
 
-// Listen for messages from content script
-chrome.runtime.onMessage.addListener(
-    (request: any, sender: chrome.runtime.MessageSender, sendResponse: (response?: any) => void) => {
-        sendResponse({ status: 'received' })
-    }
-)
-
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.type === 'GET_COOKIE') {
         chrome.cookies.get({ url: request.payload.url, name: request.payload.name }, cookie => {
@@ -30,17 +23,21 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     } else if (request.type === 'OPEN_CHAT') {
         const tabId = sender.tab?.id
         if (!tabId) return
+
+        const { chatId, bookmarkIndex, url } = request.payload
+
         setTimeout(() => {
             chrome.tabs.sendMessage(tabId, {
                 type: EVENTS.NAVIGATE_TO_CODE_BLOCK,
                 payload: {
-                    chatId: request.payload.chatId,
-                    bookmarkIndex: request.payload.bookmarkIndex,
-                    url: request.payload.url,
+                    chatId,
+                    bookmarkIndex,
+                    url,
                 },
             })
-        }, 1000)
-        return true
+        }, 1200)
+
+        sendResponse({ status: 'received' })
     }
 })
 

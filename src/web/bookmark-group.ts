@@ -34,25 +34,31 @@ export class BookmarkGroup extends LitElement {
         }
     `
 
+    @property({ type: String }) chatId = ''
     @property({ type: String }) title = ''
     @property({ type: Boolean }) expanded = false
-    @property({ type: Array }) chats: Array<{ chatId: string } & any> = []
+    @property({ type: Array }) bookmarks: {
+        [key: string]: {
+            lang: string
+            content: string
+            metadata: any
+        }
+    } = {}
 
     render() {
+        const bookmarkIndexes = Object.keys(this.bookmarks)
         return html`
             <div class="parent-item single-line ${this.expanded ? 'active' : ''}" @click=${this.toggle}>
                 ${this.title}
                 <div class="sublist">
-                    ${this.chats.flatMap(chat =>
-                        chat.bookmarks.map(
-                            (bookmarkId: string) => html`
-                                <bookmark-item
-                                    .bookmark=${chat.bookmarksData[bookmarkId]}
-                                    .chatId=${chat.chatId}
-                                    .bookmarkId=${bookmarkId}
-                                ></bookmark-item>
-                            `
-                        )
+                    ${bookmarkIndexes.map(
+                        bookmarkIndex => html`
+                            <bookmark-item
+                                .bookmark=${this.bookmarks[bookmarkIndex]}
+                                .chatId=${this.chatId}
+                                .bookmarkIndex=${bookmarkIndex}
+                            ></bookmark-item>
+                        `
                     )}
                 </div>
             </div>

@@ -1,6 +1,7 @@
 import { LitElement, html, css } from 'lit'
 import { customElement, property } from 'lit/decorators.js'
 import { BaseElement } from './base'
+import { EVENTS } from '../glossary'
 
 @customElement('bookmark-item')
 export class BookmarkItem extends BaseElement {
@@ -41,7 +42,7 @@ export class BookmarkItem extends BaseElement {
 
     @property({ type: Object }) bookmark!: any
     @property({ type: String }) chatId = ''
-    @property({ type: Number }) bookmarkId = -1
+    @property({ type: Number }) bookmarkIndex = -1
 
     render() {
         return html`
@@ -66,13 +67,13 @@ export class BookmarkItem extends BaseElement {
 
     private handleClick(e: Event) {
         e.stopPropagation()
-        this.debug('Bookmark item clicked', this.chatId, this.bookmarkId)
+        this.debug('Bookmark item clicked', this.chatId, this.bookmarkIndex)
 
         this.dispatchEvent(
             new CustomEvent('bookmark-selected', {
                 detail: {
                     chatId: this.chatId,
-                    bookmarkId: this.bookmarkId,
+                    bookmarkId: this.bookmarkIndex,
                 },
                 bubbles: true, // Allow event to bubble up
                 composed: true, // Cross shadow DOM boundary
@@ -82,15 +83,16 @@ export class BookmarkItem extends BaseElement {
 
     private handleOpenChat(e: Event) {
         e.stopPropagation()
-        this.log('Open chat', this.chatId, this.bookmarkId)
+        const url = `/c/${this.chatId}`
+        this.log('Open chat', url)
 
         window.postMessage(
             {
-                type: 'OPEN_CHAT',
+                type: EVENTS.OPEN_CHAT,
                 payload: {
                     chatId: this.chatId,
-                    bookmarkIndex: this.bookmarkId,
-                    url: `/c/${this.chatId.split('chat-')[1]}`,
+                    bookmarkIndex: this.bookmarkIndex,
+                    url,
                 },
             },
             '*'
