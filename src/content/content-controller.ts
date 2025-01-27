@@ -5,51 +5,29 @@ import { StorageService } from '../common/storage-service';
 import { extractChatId } from '../common/url-utils';
 import { scrollAndHighlight } from '../web/misc';
 import { EVENTS } from '../glossary';
+import { injectWebScript } from '../common/inject-script';
+import { PageMode } from './page-mode';
 
 export class ContentController {
     private lastSentHash = '';
-    private observer: MutationObserver;
-
-    constructor() {
-        this.observer = new MutationObserver(this.handleMutation);
-    }
+    private pageMode: PageMode = new PageMode();
 
     public async initialize() {
         await this.injectWebScript();
+        this.pageMode.start();
         this.sendUpdate();
-        this.startObserving();
+        this.observeChatState();
         this.addEventListeners();
     }
 
-    private injectWebScript() {
-        return new Promise<void>((resolve, reject) => {
-            if (!document.getElementById('code-nav-script')) {
-                const script = document.createElement('script');
-                script.id = 'code-nav-script';
-                script.src = chrome.runtime.getURL('dist/web.js');
-                script.onload = () => {
-                    script.remove();
-                    resolve();
-                }
-                script.onerror = (error) => {
-                    reject(error);
-                }
-                (document.head || document.documentElement).appendChild(script);
-            } else {
-                resolve();
-            }
-        });
+    private async injectWebScript() {
+        await injectWebScript(`${process.env.APP_NAME}-web-script`, 'dist/web.js');
+        log.info('Web script injected');
     }
 
     private sendUpdate = async () => {
         const chatId = extractChatId();
         if (!chatId) return;
-
-        if (!hasCodeBlocks()) {
-            this.sendClearState();
-            return;
-        }
-
 
         const bookmarks = await StorageService.getBookmarks(chatId);
         const blocks = extractCodeBlocks();
@@ -74,6 +52,8 @@ export class ContentController {
             }, '*');
 
             this.lastSentHash = currentHash;
+        } else {
+            log.warn('No changes detected', { currentHash, lastSentHash: this.lastSentHash });
         }
     }
 
@@ -104,12 +84,9 @@ export class ContentController {
         if (hasRelevantChange) this.sendUpdate();
     }
 
-    private startObserving() {
-        this.observer.observe(document.body, {
-            childList: true,
-            subtree: true,
-            attributes: true,
-            attributeFilter: ['class', 'id']
+    private observeChatState() {
+        this.pageMode.onPromptCompleted(() => {
+            this.sendUpdate();
         });
     }
 
@@ -184,7 +161,6 @@ export class ContentController {
     }
 
     private cleanup() {
-        this.observer.disconnect();
         window.removeEventListener('load', this.sendUpdate.bind(this));
         window.removeEventListener('scroll', this.sendUpdate.bind(this));
         window.removeEventListener('message', this.handleWindowMessage.bind(this));
