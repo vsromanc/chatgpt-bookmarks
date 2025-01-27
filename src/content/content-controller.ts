@@ -4,6 +4,7 @@ import { extractSidebarTitle } from './title-extractor';
 import { StorageService } from '../common/storage-service';
 import { extractChatId } from '../common/url-utils';
 import { scrollAndHighlight } from '../web/misc';
+import { EVENTS } from '../glossary';
 
 export class ContentController {
     private lastSentHash = '';
@@ -60,7 +61,7 @@ export class ContentController {
             });
 
             window.postMessage({
-                type: 'CODE_BLOCKS_UPDATE',
+                type: EVENTS.CODE_BLOCKS_UPDATE,
                 payload: {
                     blocks: blocks.map(b => ({
                         title: b.title,
@@ -118,7 +119,7 @@ export class ContentController {
         window.addEventListener('message', this.handleWindowMessage.bind(this));
 
         chrome.runtime.onMessage.addListener((request) => {
-            if (request.type === 'NAVIGATE_TO_CODE_BLOCK') {
+            if (request.type === EVENTS.NAVIGATE_TO_CODE_BLOCK) {
                 log.info('Navigate to code block', request.payload);
                 const pre = document.querySelector(`pre[data-code-index="${request.payload.bookmarkIndex}"]`);
                 scrollAndHighlight(pre as HTMLElement);

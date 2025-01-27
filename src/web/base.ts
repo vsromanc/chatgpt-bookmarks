@@ -6,22 +6,26 @@ export class BaseElement extends LitElement {
         return this.tagName.toLowerCase();
     }
 
-    log(message: string) {
-        log.debug(`[${this.componentName}] ${message}`);
+    log(...args: any[]) {
+        log.info(`[${this.componentName}]`, ...args);
     }
 
-    error(message: string) {
-        log.error(`[${this.componentName}] ${message}`);
+    debug(...args: any[]) {
+        log.debug(`[${this.componentName}]`, ...args);
+    }
+
+    error(...args: any[]) {
+        log.error(`[${this.componentName}]`, ...args);
     }
 
     connectedCallback() {
         super.connectedCallback();
-        this.log('Connected to DOM');
+        this.debug('Connected to DOM');
     }
 
     disconnectedCallback() {
         super.disconnectedCallback();
-        // this.log('Disconnected from DOM');
+        this.debug('Disconnected from DOM');
     }
 
     dispatch<T>(

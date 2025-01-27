@@ -42,7 +42,7 @@ export class BookmarkGroup extends LitElement {
     return html`
       <div class="parent-item single-line ${this.expanded ? 'active' : ''}" @click=${this.toggle}>
         ${this.title}
-        <div class="sublist" @bookmark-selected=${this.handleBookmarkSelected}>
+        <div class="sublist">
           ${this.chats.flatMap(chat =>
       chat.bookmarks.map((bookmarkId: string) => html`
               <bookmark-item
@@ -55,13 +55,6 @@ export class BookmarkGroup extends LitElement {
         </div>
       </div>
     `;
-  }
-
-  private handleBookmarkSelected(e: CustomEvent) {
-    // Re-dispatch the event
-    this.dispatchEvent(new CustomEvent('bookmark-selected', {
-      detail: e.detail
-    }));
   }
 
   private toggle() {

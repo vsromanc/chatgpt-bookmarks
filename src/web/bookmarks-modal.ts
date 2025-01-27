@@ -1,7 +1,8 @@
 // src/components/bookmarks-modal/bookmarks-modal.ts
-import { LitElement, html, css } from 'lit';
+import { html, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
+import { BaseElement } from './base';
 
 type Bookmark = {
   chatTitle: string;
@@ -16,7 +17,7 @@ type ChatBookmarks = {
 };
 
 @customElement('bookmarks-modal')
-export class BookmarksModal extends LitElement {
+export class BookmarksModal extends BaseElement {
   static styles = css`
     .modal {
       position: fixed;
@@ -113,24 +114,35 @@ export class BookmarksModal extends LitElement {
 
   private handleWindowMessage = (event: MessageEvent) => {
     if (event.data.type === 'ALL_BOOKMARKS_DATA') {
+      this.log('Bookmarks data received', event.data.payload);
       this.bookmarksData = event.data.payload;
       this.requestUpdate();
     }
   };
 
   private toggleGroup(groupTitle: string) {
+    this.debug("Toggle group:", groupTitle);
+
     const newExpanded = new Set(this.expandedGroups);
     newExpanded.has(groupTitle) ? newExpanded.delete(groupTitle) : newExpanded.add(groupTitle);
     this.expandedGroups = newExpanded;
   }
 
   private selectBookmark(chatId: string, bookmarkId: number) {
+    this.debug('Show bookmark content:', chatId, bookmarkId);
     const bookmark = this.bookmarksData[chatId]?.bookmarksData[bookmarkId];
-    this.selectedCodeContent = bookmark?.codeContent || 'Content not available';
+
+    if (bookmark?.codeContent) {
+      this.selectedCodeContent = bookmark?.codeContent;
+    } else {
+      this.selectedCodeContent = 'Content not available';
+      this.error('Bookmark content not available', bookmark);
+    }
   }
 
   private handleBackgroundClick(e: MouseEvent) {
     if (e.target === e.currentTarget) {
+      this.debug('Modal background clicked. Hiding modal');
       this.hide();
     }
   }
@@ -179,6 +191,7 @@ export class BookmarksModal extends LitElement {
   }
 
   show() {
+    this.log('Show bookmarks modal');
     window.postMessage({ type: 'GET_ALL_BOOKMARKS' }, '*');
     this.isOpen = true;
   }

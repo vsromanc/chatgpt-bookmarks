@@ -1,8 +1,9 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
+import { BaseElement } from './base';
 
 @customElement('bookmark-item')
-export class BookmarkItem extends LitElement {
+export class BookmarkItem extends BaseElement {
   static styles = css`
     .sublist-item {
       padding: 0.3rem 0;
@@ -61,9 +62,10 @@ export class BookmarkItem extends LitElement {
     `;
   }
 
-  // bookmark-item.ts
   private handleClick(e: Event) {
     e.stopPropagation();
+    this.debug('Bookmark item clicked', this.chatId, this.bookmarkId);
+
     this.dispatchEvent(new CustomEvent('bookmark-selected', {
       detail: {
         chatId: this.chatId,
@@ -76,6 +78,7 @@ export class BookmarkItem extends LitElement {
 
   private handleOpenChat(e: Event) {
     e.stopPropagation();
+    this.log('Open chat', this.chatId, this.bookmarkId);
 
     window.postMessage({
       type: 'OPEN_CHAT',

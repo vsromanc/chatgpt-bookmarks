@@ -1,3 +1,5 @@
+import { EVENTS } from "../glossary";
+
 // Listen for messages from content script
 chrome.runtime.onMessage.addListener((
   request: any,
@@ -29,7 +31,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     const tabId = sender.tab?.id;
     if (!tabId) return;
     setTimeout(() => {
-      chrome.tabs.sendMessage(tabId, { type: 'NAVIGATE_TO_CODE_BLOCK', payload: { chatId: request.payload.chatId, bookmarkIndex: request.payload.bookmarkIndex, url: request.payload.url } });
+      chrome.tabs.sendMessage(tabId, { type: EVENTS.NAVIGATE_TO_CODE_BLOCK, payload: { chatId: request.payload.chatId, bookmarkIndex: request.payload.bookmarkIndex, url: request.payload.url } });
     }, 1000);
     return true;
   }

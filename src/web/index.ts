@@ -1,9 +1,11 @@
+import log from '../lib/loglevel';
 import { BookmarkManager } from './bookmark-button';
 import { OpenBookmarksButton } from './open-bookmarks';
 import type { BookmarksModal } from './bookmarks-modal';
 import './bookmarks-modal';
 import './bookmark-group';
 import './bookmark-item';
+import { EVENTS } from '../glossary';
 
 class NavigationController {
   modal?: BookmarksModal;
@@ -15,6 +17,7 @@ class NavigationController {
 
   // Update initialize method
   public initialize(blocks: Array<{ title: string; language: string }>, sidebarTitle: string, bookmarks: number[]) {
+    log.info('NavigationController.initialize', blocks, sidebarTitle, bookmarks);
     BookmarkManager.addBookmarkButtons(bookmarks);
 
     this.injectBookmarksButton();
@@ -24,6 +27,7 @@ class NavigationController {
   private injectBookmarksButton() {
     const button = OpenBookmarksButton.injectButton();
     button.addEventListener('click', () => {
+      log.info('Open bookmarks button clicked');
       this.modal?.show();
     });
   }
@@ -38,15 +42,16 @@ class NavigationController {
   }
 
   public isInitialized(): boolean {
-    return false;
-    // return document.body.contains(this.navigator);
+    return document.body.contains(this.modal as Node);
   }
 }
 
 const controller = new NavigationController();
 
 window.addEventListener('message', (event) => {
-  if (event.source === window && event.data.type === 'CODE_BLOCKS_UPDATE') {
+  if (event.source === window && event.data.type === EVENTS.CODE_BLOCKS_UPDATE) {
+    log.info('Update code blocks', event.data);
+
     if (!controller.isInitialized()) {
       controller.initialize(
         event.data.payload.blocks,
