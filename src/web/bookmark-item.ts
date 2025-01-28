@@ -1,20 +1,44 @@
-import { LitElement, html, css } from 'lit'
-import { customElement, property } from 'lit/decorators.js'
+import { html, css } from 'lit'
+import { customElement, property, state } from 'lit/decorators.js'
 import { BaseElement } from './base'
 import { EVENTS } from '../glossary'
 
 @customElement('bookmark-item')
 export class BookmarkItem extends BaseElement {
     static styles = css`
+        :host {
+            /* Text colors */
+            --token-text-primary: #000;
+            --token-text-tertiary: #666;
+
+            /* Interactive states */
+            --token-interactive-hover: #f0f0f0;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :host {
+                --token-text-primary: #fff;
+                --token-text-tertiary: #888;
+                --token-interactive-hover: #2f2f2f;
+            }
+        }
+
         .sublist-item {
-            padding: 0.3rem 0;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
             cursor: pointer;
             font-size: 0.9em;
             color: var(--token-text-tertiary);
             transition: color 0.2s ease;
         }
 
+        .sublist-item.active {
+            background-color: #2f2f2f;
+            color: var(--token-text-primary);
+        }
+
         .sublist-item:hover {
+            background-color: #2f2f2f;
             color: var(--token-text-primary);
         }
 
@@ -40,13 +64,14 @@ export class BookmarkItem extends BaseElement {
         }
     `
 
+    @property({ type: Boolean }) active!: boolean
     @property({ type: Object }) bookmark!: any
     @property({ type: String }) chatId = ''
     @property({ type: Number }) bookmarkIndex = -1
 
     render() {
         return html`
-            <div class="sublist-item" @click=${this.handleClick}>
+            <div class="sublist-item ${this.active ? 'active' : ''}" @click=${this.handleClick}>
                 <div class="item-container">
                     <span class="item-text">${this.bookmark?.metadata?.name}</span>
                     <button class="link-icon" @click=${this.handleOpenChat}>

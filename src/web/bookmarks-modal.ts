@@ -7,6 +7,24 @@ import { BaseElement } from './base'
 @customElement('bookmarks-modal')
 export class BookmarksModal extends BaseElement {
     static styles = css`
+        :host {
+            /* Light mode defaults */
+            --token-main-surface-primary: #fff;
+            --token-text-primary: #000;
+            --token-main-surface-tertiary: #e0e0e0;
+            --token-main-surface-secondary: #f5f5f5;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :host {
+                /* Dark mode overrides */
+                --token-main-surface-primary: #1e1e1e;
+                --token-main-surface-tertiary: #333;
+                --token-main-surface-secondary: #252526;
+                --token-text-primary: #fff;
+            }
+        }
+
         .modal {
             position: fixed;
             inset: 0;
@@ -32,6 +50,7 @@ export class BookmarksModal extends BaseElement {
             width: 200px;
             border-right: 1px solid var(--token-main-surface-tertiary);
             overflow-y: auto;
+            background: #171717;
         }
 
         .main-view {
@@ -127,7 +146,10 @@ export class BookmarksModal extends BaseElement {
     private isOpen = false
 
     @state()
-    private selectedCodeContent = ''
+    private selected: {
+        chatId: string
+        bookmarkIndex: number
+    } | null = null
 
     @state()
     private expandedGroups = new Set<string>()
@@ -157,15 +179,10 @@ export class BookmarksModal extends BaseElement {
         this.expandedGroups = newExpanded
     }
 
-    private selectBookmark(chatId: string, bookmarkId: number) {
-        this.debug('Show bookmark content:', chatId, bookmarkId)
-        const bookmark = this.bookmarksData[chatId].bookmarks[bookmarkId]
-
-        if (bookmark?.content) {
-            this.selectedCodeContent = bookmark?.content
-        } else {
-            this.selectedCodeContent = 'Content not available'
-            this.error('Bookmark content not available', bookmark)
+    private selectBookmark(chatId: string, bookmarkIndex: number) {
+        this.selected = {
+            chatId,
+            bookmarkIndex,
         }
     }
 
@@ -178,6 +195,12 @@ export class BookmarksModal extends BaseElement {
 
     render() {
         const chatKeys = Object.keys(this.bookmarksData)
+        const selectedBookmark = this.selected?.chatId
+            ? this.bookmarksData[this.selected.chatId].bookmarks[this.selected.bookmarkIndex]
+            : null
+
+        console.log(selectedBookmark)
+
         return html`
             <div class="modal" ?hidden=${!this.isOpen} @click=${this.handleBackgroundClick} @close-modal=${this.hide}>
                 <div class="modal-content" @click=${(e: Event) => e.stopPropagation()}>
@@ -185,6 +208,8 @@ export class BookmarksModal extends BaseElement {
                         ${chatKeys.map(
                             chatId => html`
                                 <bookmark-group
+                                    .activeChatId=${this.selected?.chatId}
+                                    .activeBookmarkIndex=${this.selected?.bookmarkIndex}
                                     .chatId=${chatId}
                                     .title=${this.bookmarksData[chatId].title}
                                     .bookmarks=${this.bookmarksData[chatId].bookmarks}
@@ -198,7 +223,7 @@ export class BookmarksModal extends BaseElement {
                     </div>
 
                     <div class="main-view">
-                        <div class="code-view">${unsafeHTML(this.selectedCodeContent)}</div>
+                        <div class="code-view">${unsafeHTML(selectedBookmark?.content)}</div>
                     </div>
                 </div>
             </div>
