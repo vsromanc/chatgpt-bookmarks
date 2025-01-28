@@ -89,7 +89,7 @@ export class BookmarkManager {
         const button = document.createElement('bookmark-button') as BookmarkButton
         button.index = index
         button.isBookmarked = bookmarks?.includes(index) ?? false
-        button.classList.add(...Array.from(copyButton.classList))
+        button.classList.add('flex', 'select-none')
         return button
     }
 
