@@ -65,10 +65,8 @@ export class BookmarkManager {
         customElements.define('bookmark-button', BookmarkButton)
     }
 
-    static async addBookmarkButtons(bookmarks: number[]) {
+    static async addBookmarkButtons(bookmarks?: number[]) {
         const codeBlocks = document.querySelectorAll('pre')
-
-        console.log('codeBlocks', codeBlocks)
 
         codeBlocks.forEach((codeBlock, index) => {
             if (!codeBlock.closest('article[data-testid^="conversation-turn-"]')) return
@@ -87,10 +85,10 @@ export class BookmarkManager {
         return codeBlock.contains(codeBlock.querySelector('bookmark-button'))
     }
 
-    private static createBookmarkButton(copyButton: Element, index: number, bookmarks: number[]) {
+    private static createBookmarkButton(copyButton: Element, index: number, bookmarks?: number[]) {
         const button = document.createElement('bookmark-button') as BookmarkButton
         button.index = index
-        button.isBookmarked = bookmarks.includes(index)
+        button.isBookmarked = bookmarks?.includes(index) ?? false
         button.classList.add(...Array.from(copyButton.classList))
         return button
     }

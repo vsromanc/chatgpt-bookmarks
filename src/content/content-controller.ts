@@ -24,35 +24,26 @@ export class ContentController {
         log.info('Web script injected')
     }
 
-    private sendUpdate = async () => {
+    async initBookmarks() {
         const chatId = extractChatId()
         if (!chatId) return
 
         const bookmarks = await StorageService.getBookmarks(chatId)
-        const blocks = extractCodeBlocks()
-        const currentHash = this.generateHash(blocks)
 
-        if (currentHash !== this.lastSentHash) {
-            window.postMessage(
-                {
-                    type: EVENTS.CODE_BLOCKS_UPDATE,
-                    payload: {
-                        blocks: blocks.map(b => ({
-                            title: b.title,
-                            language: b.language,
-                            index: b.index,
-                        })),
-                        bookmarks,
-                        title: extractSidebarTitle(),
-                    },
+        window.postMessage(
+            {
+                type: EVENTS.INIT_BOOKMARKS,
+                payload: {
+                    bookmarks,
+                    title: extractSidebarTitle(),
                 },
-                '*'
-            )
+            },
+            '*'
+        )
+    }
 
-            this.lastSentHash = currentHash
-        } else {
-            log.warn('No changes detected', { currentHash, lastSentHash: this.lastSentHash })
-        }
+    handlePromtStateCompleted() {
+        window.postMessage({ type: EVENTS.PROMPT_STATE_COMPLETED }, '*')
     }
 
     private generateHash(blocks: CodeBlock[]): string {
@@ -63,7 +54,7 @@ export class ContentController {
         this.pageMode.start()
         this.pageMode.onStateChanged(state => {
             if (state === 'completed') {
-                this.sendUpdate()
+                this.handlePromtStateCompleted()
             }
         })
     }
@@ -85,7 +76,7 @@ export class ContentController {
                 log.debug('Conversation data', request.payload)
                 // give some time for data to render
                 setTimeout(() => {
-                    this.sendUpdate()
+                    this.initBookmarks()
                 }, 500)
                 break
         }

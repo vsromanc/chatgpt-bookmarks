@@ -68,7 +68,7 @@ export class OpenBookmarksButton extends BaseElement {
      */
     static injectButton() {
         // Create an instance of this element
-        const button = document.createElement('open-bookmarks-button')
+        const button = document.createElement('open-bookmarks-button') as OpenBookmarksButton
 
         // Attempt insertion before the share button or profile button
         const shareButton = document.querySelector('[data-testid="share-chat-button"]')
