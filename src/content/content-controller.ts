@@ -68,8 +68,8 @@ export class ContentController {
         switch (request.type) {
             case EVENTS.NAVIGATE_TO_CODE_BLOCK:
                 log.info('Navigate to code block', request.payload)
-                const index = parseInt(request.payload.bookmarkIndex) + 1
-                const pre = document.querySelector(`pre:nth-of-type(${index})`) as HTMLElement
+                const index = parseInt(request.payload.bookmarkIndex)
+                const pre = document.querySelectorAll('pre')[index]
                 scrollAndHighlight(pre)
                 break
             case EVENTS.CONVERSATION_DATA:
