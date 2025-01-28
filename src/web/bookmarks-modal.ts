@@ -16,8 +16,8 @@ export class BookmarksModal extends BaseElement {
 
         .modal-content {
             background: var(--token-main-surface-primary, #fff);
-            width: 700px;
-            height: 80vh;
+            width: 900px;
+            height: 70vh;
             position: absolute;
             top: 50%;
             left: 50%;
