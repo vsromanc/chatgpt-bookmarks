@@ -36,11 +36,13 @@ export class BookmarksModal extends BaseElement {
 
         .main-view {
             flex: 1;
-            max-width: 500px;
             overflow: auto;
+
+            display: flex;
         }
 
         .code-view {
+            flex-grow: 1;
             white-space: pre-wrap;
             font-family: monospace;
             padding: 1rem;
