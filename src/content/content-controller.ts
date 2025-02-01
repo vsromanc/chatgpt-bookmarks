@@ -8,6 +8,7 @@ import { injectWebScript } from '../common/inject-script'
 import { PromptStateObserver } from './page-mode'
 import { inferMetadata } from './api'
 import { invariant } from 'outvariant'
+import { awaitTimeout } from '../common/services/await-timeout'
 
 export class ContentController {
     private pageMode: PromptStateObserver = new PromptStateObserver()
@@ -114,23 +115,36 @@ export class ContentController {
         }
     }
 
-    openChat(chatId: string, bookmarkIndex: string, url: string) {
+    findPreElementWithInterval(index: number, timeout: number = 3500) {
+        return new Promise((resolve, reject) => {
+            const interval = setInterval(() => {
+                const pre = document.querySelectorAll('pre')?.[index]
+                if (pre) {
+                    clearInterval(interval)
+                    resolve(pre)
+                }
+            }, 30)
+
+            awaitTimeout(timeout, 'Pre element not found').catch(reject)
+        })
+    }
+
+    async openChat(chatId: string, bookmarkIndex: string, url: string) {
         log.info('Open chat', chatId, bookmarkIndex, url)
         const sidebarTag = document.querySelector(`a[href="${url}"]`)
         if (sidebarTag) {
             ;(sidebarTag as HTMLElement).click()
         }
 
-        setTimeout(() => {
-            const index = parseInt(bookmarkIndex)
-            const pre = document.querySelectorAll('pre')[index]
-            const container = document.querySelector(
-                'div[class^="react-scroll-to-bottom"] > div[class^="react-scroll-to-bottom"]'
-            ) as HTMLDivElement
-            invariant(container?.contains(pre), 'Scroll container or pre element not found')
-            if (pre) {
-                scrollAndHighlight(container, pre)
-            }
-        }, 3000)
+        const index = parseInt(bookmarkIndex)
+        const pre = (await this.findPreElementWithInterval(index)) as HTMLElement
+
+        const container = document.querySelector(
+            'div[class^="react-scroll-to-bottom"] > div[class^="react-scroll-to-bottom"]'
+        ) as HTMLDivElement
+        invariant(container?.contains(pre), 'Scroll container or pre element not found')
+        if (pre) {
+            scrollAndHighlight(container, pre)
+        }
     }
 }
