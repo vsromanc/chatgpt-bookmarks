@@ -41,22 +41,23 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
 })
 
-// add web request listener to monitor conversation data loaded
-// example url: https://chatgpt.com/backend-api/conversation/6797d8ce-0618-8009-970e-c9b8a5084aab
-chrome.webRequest.onCompleted.addListener(
-    details => {
-        if (endsWithUuid(details.url)) {
-            log.info('Conversation request', details)
-            chrome.tabs.sendMessage(details.tabId, {
-                type: EVENTS.CONVERSATION_DATA,
-                payload: {
-                    chatId: details.url.split('/').pop(),
-                    url: details.url,
-                },
-            })
-        }
+chrome.webNavigation.onHistoryStateUpdated.addListener(
+    async details => {
+        chrome.tabs.sendMessage(details.tabId, {
+            type: EVENTS.HISTORY_STATE_UPDATED,
+            payload: {
+                chatId: endsWithUuid(details.url) ? details.url.split('/').pop() : null,
+                url: details.url,
+            },
+        })
     },
-    { urls: ['https://chatgpt.com/backend-api/conversation/*'], types: ['xmlhttprequest'] }
+    {
+        url: [
+            {
+                hostContains: 'chatgpt.com',
+            },
+        ],
+    }
 )
 
 function endsWithUuid(url: string) {

@@ -1,5 +1,4 @@
 import log from '../lib/loglevel'
-import { extractCodeBlocks, CodeBlock, hasCodeBlocks } from './code-extractor'
 import { extractSidebarTitle } from './title-extractor'
 import { StorageService } from '../common/storage-service'
 import { extractChatId } from '../common/url-utils'
@@ -8,15 +7,19 @@ import { EVENTS } from '../glossary'
 import { injectWebScript } from '../common/inject-script'
 import { PromptStateObserver } from './page-mode'
 import { inferMetadata } from './api'
+import { invariant } from 'outvariant'
 
 export class ContentController {
-    private lastSentHash = ''
     private pageMode: PromptStateObserver = new PromptStateObserver()
+
+    initTimeout: ReturnType<typeof setTimeout> | null = null
+    initInterval: ReturnType<typeof setInterval> | null = null
 
     public async initialize() {
         await this.injectWebScript()
-        this.observeChatState()
         this.addEventListeners()
+
+        this.initializeChat()
     }
 
     private async injectWebScript() {
@@ -24,12 +27,13 @@ export class ContentController {
         log.info('Web script injected')
     }
 
-    async initBookmarks() {
+    async initializeChat() {
+        this.observeChatState()
+
         const chatId = extractChatId()
-        if (!chatId) return
+        invariant(chatId, 'Chat id not found')
 
         const bookmarks = await StorageService.getBookmarks(chatId)
-
         window.postMessage(
             {
                 type: EVENTS.INIT_BOOKMARKS,
@@ -44,10 +48,6 @@ export class ContentController {
 
     handlePromtStateCompleted() {
         window.postMessage({ type: EVENTS.PROMPT_STATE_COMPLETED }, '*')
-    }
-
-    private generateHash(blocks: CodeBlock[]): string {
-        return blocks.map((b, index) => `${index}|${b.title}|${b.language}`).join('#')
     }
 
     private observeChatState() {
@@ -72,12 +72,9 @@ export class ContentController {
                 const pre = document.querySelectorAll('pre')[index]
                 scrollAndHighlight(pre)
                 break
-            case EVENTS.CONVERSATION_DATA:
-                log.debug('Conversation data', request.payload)
-                // give some time for data to render
-                setTimeout(() => {
-                    this.initBookmarks()
-                }, 500)
+            case EVENTS.HISTORY_STATE_UPDATED:
+                log.debug('History state updated', request.payload)
+                this.initializeChat()
                 break
         }
     }

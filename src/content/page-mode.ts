@@ -6,6 +6,7 @@ export class PromptStateObserver {
     private listeners: ((testId: PromptState) => void)[] = []
     private selectors = {
         composer: '#composer-background',
+        submitButton: '[data-testid="send-button"]',
     }
 
     private submitButtonObserver: MutationObserver | null = null
@@ -33,7 +34,25 @@ export class PromptStateObserver {
             characterData: false,
         })
 
-        this.submitButtonObserver = new MutationObserver(this.handleSubmitButtonMutation)
+        const submitButton = document.querySelector(this.selectors.submitButton)
+        if (submitButton) {
+            log.debug('Send button already exists. Watch for streaming state')
+            this.submitButtonObserver = new MutationObserver(this.handleSubmitButtonMutation)
+            this.submitButtonObserver?.observe(submitButton, {
+                attributes: true,
+            })
+        }
+    }
+
+    private initSubmitButtonObserver(button: HTMLButtonElement) {
+        const submitButton = button || document.querySelector(this.selectors.submitButton)
+        if (submitButton && !this.submitButtonObserver) {
+            log.debug('Send button already exists. Watch for streaming state')
+            this.submitButtonObserver = new MutationObserver(this.handleSubmitButtonMutation)
+            this.submitButtonObserver?.observe(submitButton, {
+                attributes: true,
+            })
+        }
     }
 
     private handleSubmitButtonMutation = (mutations: MutationRecord[]) => {
@@ -41,7 +60,6 @@ export class PromptStateObserver {
             if (mutation.type === 'attributes' && mutation.attributeName === 'data-testid') {
                 const button = mutation.target as HTMLButtonElement
                 const testId = button.getAttribute('data-testid')
-
                 if (testId === 'stop-button') {
                     log.info('Streaming started', new Date().toISOString())
                     this.listeners.forEach(listener => listener('generating'))
@@ -57,11 +75,9 @@ export class PromptStateObserver {
                     if (node.nodeType === Node.ELEMENT_NODE && (node as HTMLElement).tagName === 'BUTTON') {
                         const button = node as HTMLButtonElement
                         const testId = button.getAttribute('data-testid')
-                        if (testId === 'send-button') {
-                            log.debug('Observing send button', new Date().toISOString())
-                            this.submitButtonObserver?.observe(button, {
-                                attributes: true,
-                            })
+                        if (testId === 'send-button' && !this.submitButtonObserver) {
+                            log.debug('Send button added. Watch for streaming state')
+                            this.initSubmitButtonObserver(button)
                         }
                     }
                 })
@@ -73,6 +89,7 @@ export class PromptStateObserver {
                             log.info('Streaming stopped', new Date().toISOString())
 
                             this.submitButtonObserver?.disconnect()
+                            this.submitButtonObserver = null
                             this.listeners.forEach(listener => listener('completed'))
                         }
                     }

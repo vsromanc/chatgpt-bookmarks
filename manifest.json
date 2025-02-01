@@ -8,7 +8,7 @@
         "48": "assets/48.png",
         "128": "assets/128.png"
     },
-    "permissions": ["scripting", "activeTab", "storage", "cookies", "webRequest"],
+    "permissions": ["scripting", "activeTab", "storage", "cookies", "webRequest", "webNavigation"],
     "host_permissions": ["https://chatgpt.com/*", "https://chat.com/*"],
     "background": {
         "service_worker": "dist/background.js"
@@ -25,7 +25,8 @@
     "content_scripts": [
         {
             "matches": ["https://chatgpt.com/*", "https://chat.com/*"],
-            "js": ["dist/content.js"]
+            "js": ["dist/content.js"],
+            "run_at": "document_start"
         }
     ],
     "web_accessible_resources": [

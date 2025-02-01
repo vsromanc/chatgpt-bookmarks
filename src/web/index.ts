@@ -1,4 +1,7 @@
+import { FetchInterceptor } from '@mswjs/interceptors/fetch'
+import { invariant } from 'outvariant'
 import log from '../lib/loglevel'
+import { awaitTimeout } from '../common/services/await-timeout'
 import { BookmarkManager } from './bookmark-button'
 import * as OpenBookmarks from './open-bookmarks'
 import type { BookmarksModal } from './bookmarks-modal'
@@ -11,18 +14,63 @@ import { EVENTS } from '../glossary'
 class WebpageController {
     modal?: BookmarksModal
     button?: OpenBookmarksButton
+    fetchInterceptor: FetchInterceptor
+
+    bookmarks: number[] | null = null
 
     constructor() {
         BookmarkManager.initialize()
+        this.fetchInterceptor = new FetchInterceptor()
+        this.initFetchInterceptor()
+
+        this.injectBookmarksModal()
+    }
+
+    initFetchInterceptor() {
+        this.fetchInterceptor.on('response', this.onFetchResponse)
+        this.fetchInterceptor.apply()
+    }
+
+    isValidConversationResponse(response: Response) {
+        return response.ok && /backend-api\/conversation\/[a-f0-9\-]{36}$/.test(response.url)
+    }
+
+    onFetchResponse = async ({ response }: { response: Response }) => {
+        if (this.isValidConversationResponse(response)) {
+            const json = await response.clone().json()
+            try {
+                let currentNode = json.current_node
+                const lastMessageId = json.mapping[currentNode].message.id
+                this.initChat(lastMessageId)
+            } catch (error) {
+                log.error('Error parsing conversation', error)
+            }
+        }
+    }
+
+    initChat = async (messageId: string) => {
+        const uiReadyPromise = new Promise<void>(resolve => {
+            const interval = setInterval(() => {
+                const message = document.querySelector(`div[data-message-id="${messageId}"] div.markdown`)
+                if (message) {
+                    clearInterval(interval)
+                    resolve()
+                }
+            }, 30)
+        })
+
+        await Promise.race([uiReadyPromise, awaitTimeout(5000, 'No corresponding div was found matching API response')])
+
+        invariant(this.bookmarks, 'Bookmarks are not initialized')
+
+        console.log('bookmarks', this.bookmarks)
+        BookmarkManager.addBookmarkButtons(this.bookmarks)
+        this.injectBookmarksButton()
     }
 
     // Update initialize method
     public initializeBookmarks(bookmarks: number[]) {
-        log.info('WebpageController.initializeBookmarks', bookmarks)
-        BookmarkManager.addBookmarkButtons(bookmarks)
-
-        this.injectBookmarksButton()
-        this.injectBookmarksModal()
+        this.bookmarks = bookmarks
     }
 
     public handlePromtStateCompleted() {
@@ -45,10 +93,6 @@ class WebpageController {
             this.modal = document.createElement('bookmarks-modal') as BookmarksModal
             document.body.appendChild(this.modal)
         }
-    }
-
-    public destroy(): void {
-        // this.navigator.remove();
     }
 }
 

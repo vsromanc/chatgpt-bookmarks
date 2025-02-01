@@ -22,7 +22,7 @@ export class BookmarkButton extends BaseElement {
             background-color: transparent;
             background-image: none;
             cursor: pointer;
-            color: #b4b4b4;
+            color: #5d5d5d;
             line-height: 0;
             display: flex;
         }
@@ -67,7 +67,7 @@ export class BookmarkManager {
 
     static async addBookmarkButtons(bookmarks?: number[]) {
         const codeBlocks = document.querySelectorAll('pre')
-
+        console.log('code blocks ', codeBlocks)
         codeBlocks.forEach((codeBlock, index) => {
             if (!codeBlock.closest('article[data-testid^="conversation-turn-"]')) return
 

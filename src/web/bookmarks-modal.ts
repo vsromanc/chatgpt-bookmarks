@@ -199,8 +199,6 @@ export class BookmarksModal extends BaseElement {
             ? this.bookmarksData[this.selected.chatId].bookmarks[this.selected.bookmarkIndex]
             : null
 
-        console.log(selectedBookmark)
-
         return html`
             <div class="modal" ?hidden=${!this.isOpen} @click=${this.handleBackgroundClick} @close-modal=${this.hide}>
                 <div class="modal-content" @click=${(e: Event) => e.stopPropagation()}>
