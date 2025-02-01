@@ -66,12 +66,6 @@ export class ContentController {
 
     private runtimeOnMessageListener = (request: any) => {
         switch (request.type) {
-            case EVENTS.NAVIGATE_TO_CODE_BLOCK:
-                log.info('Navigate to code block', request.payload)
-                const index = parseInt(request.payload.bookmarkIndex)
-                const pre = document.querySelectorAll('pre')[index]
-                scrollAndHighlight(pre)
-                break
             case EVENTS.HISTORY_STATE_UPDATED:
                 log.debug('History state updated', request.payload)
                 this.initializeChat()
@@ -116,18 +110,27 @@ export class ContentController {
             )
         } else if (event.source === window && event.data.type === EVENTS.OPEN_CHAT) {
             const { chatId, bookmarkIndex, url } = event.data.payload
-
-            const reply = await chrome.runtime.sendMessage({
-                type: EVENTS.OPEN_CHAT,
-                payload: { chatId, bookmarkIndex, url },
-            })
-
-            if (reply.status === 'received') {
-                const sidebarTag = document.querySelector(`a[href="${url}"]`)
-                if (sidebarTag) {
-                    ;(sidebarTag as HTMLElement).click()
-                }
-            }
+            this.openChat(chatId, bookmarkIndex, url)
         }
+    }
+
+    openChat(chatId: string, bookmarkIndex: string, url: string) {
+        log.info('Open chat', chatId, bookmarkIndex, url)
+        const sidebarTag = document.querySelector(`a[href="${url}"]`)
+        if (sidebarTag) {
+            ;(sidebarTag as HTMLElement).click()
+        }
+
+        setTimeout(() => {
+            const index = parseInt(bookmarkIndex)
+            const pre = document.querySelectorAll('pre')[index]
+            const container = document.querySelector(
+                'div[class^="react-scroll-to-bottom"] > div[class^="react-scroll-to-bottom"]'
+            ) as HTMLDivElement
+            invariant(container?.contains(pre), 'Scroll container or pre element not found')
+            if (pre) {
+                scrollAndHighlight(container, pre)
+            }
+        }, 3000)
     }
 }

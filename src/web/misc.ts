@@ -1,7 +1,18 @@
-export function scrollAndHighlight(element: HTMLElement): void {
-    element.scrollIntoView({
+function getOffsetFromContainerTop(element: HTMLElement, container: HTMLElement) {
+    const elementRect = element.getBoundingClientRect()
+    const containerRect = container.getBoundingClientRect()
+    return elementRect.top - containerRect.top
+}
+
+export const scrollAndHighlight = (container: HTMLDivElement, element: HTMLElement) => {
+    const header = element?.closest('article')?.parentElement?.firstElementChild
+    const marginHeight = header?.getBoundingClientRect().height || 56
+
+    const offset = getOffsetFromContainerTop(element, container)
+    const scrollTo = container.scrollTop + offset - marginHeight - 100
+    container.scrollTo({
+        top: scrollTo,
         behavior: 'smooth',
-        block: 'start',
     })
 
     const originalTransition = element.style.transition

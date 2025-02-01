@@ -8,3 +8,7 @@ export const EVENTS = {
     OPEN_CHAT: 'OPEN_CHAT',
     HISTORY_STATE_UPDATED: 'HISTORY_STATE_UPDATED',
 }
+
+export const API = {
+    INFER_METADATA: 'https://chatgpt.com/backend-api/conversation/textdocs/infer_metadata',
+}

@@ -20,24 +20,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             }
         })
         return true // Indicates that the response is asynchronous
-    } else if (request.type === 'OPEN_CHAT') {
-        const tabId = sender.tab?.id
-        if (!tabId) return
-
-        const { chatId, bookmarkIndex, url } = request.payload
-
-        setTimeout(() => {
-            chrome.tabs.sendMessage(tabId, {
-                type: EVENTS.NAVIGATE_TO_CODE_BLOCK,
-                payload: {
-                    chatId,
-                    bookmarkIndex,
-                    url,
-                },
-            })
-        }, 1200)
-
-        sendResponse({ status: 'received' })
     }
 })
 
