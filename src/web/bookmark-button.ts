@@ -22,7 +22,7 @@ export class BookmarkButton extends BaseElement {
             background-color: transparent;
             background-image: none;
             cursor: pointer;
-            color: #5d5d5d;
+            color: inherit;
             line-height: 0;
             display: flex;
         }
