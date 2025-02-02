@@ -16,11 +16,17 @@ export class ContentController {
     initTimeout: ReturnType<typeof setTimeout> | null = null
     initInterval: ReturnType<typeof setInterval> | null = null
 
+    scrollOnLoad: { chatId: string; bookmarkIndex: string; url: string } | null = null
+
     public async initialize() {
         await this.injectWebScript()
-        this.addEventListeners()
 
-        this.initializeChat()
+        window.addEventListener('message', this.handleWindowMessage.bind(this))
+        chrome.runtime.onMessage.addListener(this.runtimeOnMessageListener)
+
+        window.addEventListener('DOMContentLoaded', () => {
+            this.initializeChat()
+        })
     }
 
     private async injectWebScript() {
@@ -45,6 +51,11 @@ export class ContentController {
             },
             '*'
         )
+
+        if (this.scrollOnLoad) {
+            this.scrollToBookmark(this.scrollOnLoad.bookmarkIndex)
+            this.scrollOnLoad = null
+        }
     }
 
     handlePromtStateCompleted() {
@@ -60,16 +71,15 @@ export class ContentController {
         })
     }
 
-    private addEventListeners() {
-        window.addEventListener('message', this.handleWindowMessage.bind(this))
-        chrome.runtime.onMessage.addListener(this.runtimeOnMessageListener)
-    }
-
     private runtimeOnMessageListener = (request: any) => {
         switch (request.type) {
             case EVENTS.HISTORY_STATE_UPDATED:
                 log.debug('History state updated', request.payload)
                 this.initializeChat()
+                break
+            case EVENTS.SCROLL_TO_BOOKMARK:
+                log.debug('Scroll to bookmark', request.payload)
+                this.openChat(request.payload.chatId, request.payload.bookmarkIndex, request.payload.url)
                 break
         }
     }
@@ -129,13 +139,50 @@ export class ContentController {
         })
     }
 
-    async openChat(chatId: string, bookmarkIndex: string, url: string) {
-        log.info('Open chat', chatId, bookmarkIndex, url)
-        const sidebarTag = document.querySelector(`a[href="${url}"]`)
-        if (sidebarTag) {
-            ;(sidebarTag as HTMLElement).click()
+    emulateChatClick(url: string) {
+        const atag = document.querySelector(`a[href="${url}"]`)
+        if (atag) {
+            log.info('Sidebar link found', atag)
+            ;(atag as HTMLElement).click()
+            return true
+        }
+        return false
+    }
+
+    simulateTyping(element: HTMLInputElement, text: string, interval: number) {
+        log.info('Simulate typing')
+
+        let index = 0
+
+        // Function to type the next character
+        function typeNextChar() {
+            if (index < text.length) {
+                element.value += text[index]
+                index++
+                // Dispatch 'input' event to notify listeners
+                element.dispatchEvent(new Event('input', { bubbles: true }))
+                setTimeout(typeNextChar, interval)
+            }
         }
 
+        // Start typing
+        typeNextChar()
+    }
+
+    async emulateSearchAndClick(textToSearch: string) {
+        const searchButon = document.querySelector('button:has(svg[class="icon-xl-heavy"])')
+        invariant(searchButon, 'Search button not found')
+        ;(searchButon as HTMLElement).click()
+
+        await awaitTimeout(10)
+
+        const input = document.activeElement as HTMLInputElement
+        invariant(input?.tagName === 'INPUT', 'Input not found')
+
+        this.simulateTyping(input, textToSearch, 10)
+    }
+
+    async scrollToBookmark(bookmarkIndex: string) {
         const index = parseInt(bookmarkIndex)
         const pre = (await this.findPreElementWithInterval(index)) as HTMLElement
 
@@ -145,6 +192,25 @@ export class ContentController {
         invariant(container?.contains(pre), 'Scroll container or pre element not found')
         if (pre) {
             scrollAndHighlight(container, pre)
+        }
+    }
+
+    async openChat(chatId: string, bookmarkIndex: string, url: string) {
+        if (location.href.includes(url)) {
+            this.scrollToBookmark(bookmarkIndex)
+            return
+        }
+
+        log.info('Open chat', chatId, bookmarkIndex, url)
+        if (!this.emulateChatClick(url)) {
+            this.emulateSearchAndClick(url)
+        }
+
+        // scroll to bookmark after chat is opened
+        this.scrollOnLoad = {
+            chatId,
+            bookmarkIndex,
+            url,
         }
     }
 }

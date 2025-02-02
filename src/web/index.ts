@@ -23,7 +23,9 @@ class WebpageController {
         this.fetchInterceptor = new FetchInterceptor()
         this.initFetchInterceptor()
 
-        this.injectBookmarksModal()
+        window.addEventListener('DOMContentLoaded', () => {
+            this.injectBookmarksModal()
+        })
     }
 
     initFetchInterceptor() {

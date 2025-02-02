@@ -67,7 +67,6 @@ export class BookmarkManager {
 
     static async addBookmarkButtons(bookmarks?: number[]) {
         const codeBlocks = document.querySelectorAll('pre')
-        console.log('code blocks ', codeBlocks)
         codeBlocks.forEach((codeBlock, index) => {
             if (!codeBlock.closest('article[data-testid^="conversation-turn-"]')) return
 
