@@ -65,7 +65,6 @@ class WebpageController {
 
         invariant(this.bookmarks, 'Bookmarks are not initialized')
 
-        console.log('bookmarks', this.bookmarks)
         BookmarkManager.addBookmarkButtons(this.bookmarks)
         this.injectBookmarksButton()
     }

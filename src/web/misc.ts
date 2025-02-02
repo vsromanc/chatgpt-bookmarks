@@ -81,9 +81,30 @@ export async function scrollAndHighlight(container: HTMLElement, element: HTMLEl
 
     const marginHeight = getHeaderHeight(element)
     const elementOffset = getVerticalOffset(element, container)
+    const initialScrollTop = container.scrollTop
     const targetScrollPosition =
-        container.scrollTop + elementOffset - marginHeight - (options.extraOffset ?? SCROLL_OPTIONS.SCROLL_EXTRA_OFFSET)
+        initialScrollTop + elementOffset - marginHeight - (options.extraOffset ?? SCROLL_OPTIONS.SCROLL_EXTRA_OFFSET)
 
-    await smoothScrollToPosition(container, targetScrollPosition, options)
-    applyTemporaryHighlight(element, SCROLL_OPTIONS.HIGHLIGHT_DURATION)
+    const scrollPromise = smoothScrollToPosition(container, targetScrollPosition, options)
+    const timeoutPromise = new Promise(resolve => setTimeout(resolve, 100))
+
+    try {
+        await Promise.race([scrollPromise, timeoutPromise])
+    } catch (error) {
+        log.warn('Scroll error during race:', error)
+    }
+
+    // Check if scroll hasn't started after 100ms
+    if (Math.abs(container.scrollTop - initialScrollTop) < 1) {
+        // Scroll hasn't started; apply highlight immediately
+        applyTemporaryHighlight(element, SCROLL_OPTIONS.HIGHLIGHT_DURATION)
+    } else {
+        // Scroll has started; wait for it to finish and then apply highlight
+        try {
+            await scrollPromise
+        } catch (error) {
+            log.warn('Scroll interrupted or timed out after starting', error)
+        }
+        applyTemporaryHighlight(element, SCROLL_OPTIONS.HIGHLIGHT_DURATION)
+    }
 }
