@@ -85,43 +85,57 @@ export class ContentController {
     }
 
     private async handleWindowMessage(event: MessageEvent) {
-        if (event.source === window && event.data.type === EVENTS.TOGGLE_BOOKMARK) {
-            log.debug('Toggle bookmark', event.data.payload)
-            const chatId = extractChatId()
-            if (!chatId) {
-                log.error('Toggle bookmark: No chat id found')
-                return
+        if (event.source !== window) return
+        switch (event.data.type) {
+            case EVENTS.TOGGLE_BOOKMARK:
+                log.debug('Toggle bookmark', event.data.payload)
+                const chatId = extractChatId()
+                if (!chatId) {
+                    log.error('Toggle bookmark: No chat id found')
+                    return
+                }
+
+                const chatTitle = extractSidebarTitle()
+                if (!chatTitle) {
+                    log.error('Toggle bookmark: No chat title found')
+                    return
+                }
+
+                const { accessToken, lang, content, isBookmarked, index } = event.data.payload
+
+                let metadata
+                if (isBookmarked) {
+                    metadata = await inferMetadata(accessToken, content)
+                    log.debug('Toggle bookmark: Inferred metadata', metadata)
+                }
+
+                StorageService.toggleBookmark(chatId, index, isBookmarked, {
+                    lang,
+                    content,
+                    chatTitle,
+                    metadata,
+                }).catch(log.error)
+
+                event.source.postMessage(
+                    { type: EVENTS.TOGGLE_BOOKMARK_COMPLETED, payload: { metadata, index, isBookmarked } },
+                    '*'
+                )
+                break
+            case EVENTS.GET_ALL_BOOKMARKS:
+                const bookmarks = await StorageService.getAllBookmarks()
+                window.postMessage(
+                    {
+                        type: 'ALL_BOOKMARKS_DATA',
+                        payload: bookmarks,
+                    },
+                    '*'
+                )
+                break
+            case EVENTS.OPEN_CHAT: {
+                const { chatId, bookmarkIndex, url } = event.data.payload
+                this.openChat(chatId, bookmarkIndex, url)
+                break
             }
-
-            const chatTitle = extractSidebarTitle()
-            if (!chatTitle) {
-                log.error('Toggle bookmark: No chat title found')
-                return
-            }
-
-            const { accessToken, lang, content, isBookmarked, index } = event.data.payload
-
-            const metadata = await inferMetadata(accessToken, content)
-            log.debug('Toggle bookmark: Inferred metadata', metadata)
-
-            StorageService.toggleBookmark(chatId, index, isBookmarked, {
-                lang,
-                content,
-                chatTitle,
-                metadata,
-            }).catch(log.error)
-        } else if (event.source === window && event.data.type === EVENTS.GET_ALL_BOOKMARKS) {
-            const bookmarks = await StorageService.getAllBookmarks()
-            window.postMessage(
-                {
-                    type: 'ALL_BOOKMARKS_DATA',
-                    payload: bookmarks,
-                },
-                '*'
-            )
-        } else if (event.source === window && event.data.type === EVENTS.OPEN_CHAT) {
-            const { chatId, bookmarkIndex, url } = event.data.payload
-            this.openChat(chatId, bookmarkIndex, url)
         }
     }
 

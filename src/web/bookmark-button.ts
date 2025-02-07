@@ -66,8 +66,8 @@ export class BookmarkManager {
     }
 
     static async addBookmarkButtons(bookmarks?: number[]) {
-        const codeBlocks = document.querySelectorAll('pre')
-        codeBlocks.forEach((codeBlock, index) => {
+        const blocks = document.querySelectorAll('pre')
+        blocks.forEach((codeBlock, index) => {
             if (!codeBlock.closest('article[data-testid^="conversation-turn-"]')) return
 
             if (this.hasExistingBookmarkButton(codeBlock)) return

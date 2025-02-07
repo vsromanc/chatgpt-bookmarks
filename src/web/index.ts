@@ -9,7 +9,9 @@ import type { OpenBookmarksButton } from './open-bookmarks'
 import './bookmarks-modal'
 import './bookmark-group'
 import './bookmark-item'
+import './bookmark-name'
 import { EVENTS } from '../glossary'
+import { BookmarkName } from './bookmark-name'
 
 class WebpageController {
     modal?: BookmarksModal
@@ -95,6 +97,16 @@ class WebpageController {
             document.body.appendChild(this.modal)
         }
     }
+
+    public setBookmarkName(index: number, metadata: { lang?: string; name?: string }) {
+        log.debug('setBookmarkName', index, metadata)
+        BookmarkName.inject(index, String(metadata.name), String(metadata.lang))
+    }
+
+    public resetBookmarkName(index: number) {
+        log.debug('resetBookmarkName', index)
+        // BookmarkButton.updateBookmarkState(index, false)
+    }
 }
 
 const controller = new WebpageController()
@@ -106,6 +118,14 @@ window.addEventListener('message', event => {
             controller.initializeBookmarks(bookmarks)
         } else if (event.data.type === EVENTS.PROMPT_STATE_COMPLETED) {
             controller.handlePromtStateCompleted()
+        } else if (event.data.type === EVENTS.TOGGLE_BOOKMARK_COMPLETED) {
+            log.debug('Toggle bookmark completed', event.data.payload)
+            const { metadata, index, isBookmarked } = event.data.payload
+            if (isBookmarked) {
+                controller.setBookmarkName(index, metadata)
+            } else {
+                controller.resetBookmarkName(index)
+            }
         }
     }
 })
