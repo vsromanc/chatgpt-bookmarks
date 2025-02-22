@@ -2,6 +2,7 @@ import { html, css } from 'lit'
 import { BaseElement } from './base'
 import { property, state } from 'lit/decorators.js'
 import { EVENTS } from '../glossary'
+import { awaitTimeout } from '../common/services/await-timeout'
 
 const BUTTON_LABELS = {
     BOOKMARKED: '✓ Bookmarked',
@@ -66,6 +67,7 @@ export class BookmarkManager {
     }
 
     static async addBookmarkButtons(bookmarks?: number[]) {
+        await awaitTimeout(50)
         const blocks = document.querySelectorAll('pre')
         blocks.forEach((codeBlock, index) => {
             if (!codeBlock.closest('article[data-testid^="conversation-turn-"]')) return

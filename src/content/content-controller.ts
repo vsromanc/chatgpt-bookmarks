@@ -38,19 +38,19 @@ export class ContentController {
         this.observeChatState()
 
         const chatId = extractChatId()
-        invariant(chatId, 'Chat id not found')
-
-        const bookmarks = await StorageService.getBookmarks(chatId)
-        window.postMessage(
-            {
-                type: EVENTS.INIT_BOOKMARKS,
-                payload: {
-                    bookmarks,
-                    title: extractSidebarTitle(),
+        if (chatId) {
+            const bookmarks = await StorageService.getBookmarks(chatId)
+            window.postMessage(
+                {
+                    type: EVENTS.INIT_BOOKMARKS,
+                    payload: {
+                        bookmarks,
+                        title: extractSidebarTitle(),
+                    },
                 },
-            },
-            '*'
-        )
+                '*'
+            )
+        }
 
         if (this.scrollOnLoad) {
             this.scrollToBookmark(this.scrollOnLoad.bookmarkIndex)
@@ -183,19 +183,6 @@ export class ContentController {
         typeNextChar()
     }
 
-    async emulateSearchAndClick(textToSearch: string) {
-        const searchButon = document.querySelector('button:has(svg[class="icon-xl-heavy"])')
-        invariant(searchButon, 'Search button not found')
-        ;(searchButon as HTMLElement).click()
-
-        await awaitTimeout(10)
-
-        const input = document.activeElement as HTMLInputElement
-        invariant(input?.tagName === 'INPUT', 'Input not found')
-
-        this.simulateTyping(input, textToSearch, 10)
-    }
-
     async scrollToBookmark(bookmarkIndex: string) {
         const index = parseInt(bookmarkIndex)
         const pre = (await this.findPreElementWithInterval(index)) as HTMLElement
@@ -217,7 +204,7 @@ export class ContentController {
 
         log.info('Open chat', chatId, bookmarkIndex, url)
         if (!this.emulateChatClick(url)) {
-            this.emulateSearchAndClick(url)
+            window.location.href = url
         }
 
         // scroll to bookmark after chat is opened

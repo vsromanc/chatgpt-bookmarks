@@ -24,10 +24,6 @@ class WebpageController {
         BookmarkManager.initialize()
         this.fetchInterceptor = new FetchInterceptor()
         this.initFetchInterceptor()
-
-        window.addEventListener('DOMContentLoaded', () => {
-            this.injectBookmarksModal()
-        })
     }
 
     initFetchInterceptor() {
@@ -36,7 +32,7 @@ class WebpageController {
     }
 
     isValidConversationResponse(response: Response) {
-        return response.ok && /backend-api\/conversation\/[a-f0-9\-]{36}$/.test(response.url)
+        return response.ok && (/backend-api\/conversation\/[a-f0-9\-]{36}$/.test(response.url))
     }
 
     onFetchResponse = async ({ response }: { response: Response }) => {
@@ -44,10 +40,14 @@ class WebpageController {
             const json = await response.clone().json()
             try {
                 let currentNode = json.current_node
-                const lastMessageId = json.mapping[currentNode].message.id
+                const lastMessageId = json.mapping?.[currentNode].message.id
                 this.initChat(lastMessageId)
             } catch (error) {
                 log.error('Error parsing conversation', error)
+            }
+        } else if (response.ok && /backend-api\/conversation\/init$/.test(response.url)) {
+            if (!location.pathname.includes('/c/')) {
+                this.injectBookmarksButton()
             }
         }
     }
@@ -64,11 +64,13 @@ class WebpageController {
         })
 
         await Promise.race([uiReadyPromise, awaitTimeout(5000, 'No corresponding div was found matching API response')])
+        await awaitTimeout(50)
 
         invariant(this.bookmarks, 'Bookmarks are not initialized')
 
         BookmarkManager.addBookmarkButtons(this.bookmarks)
         this.injectBookmarksButton()
+        this.injectBookmarksModal()
     }
 
     // Update initialize method

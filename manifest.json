@@ -1,8 +1,8 @@
 {
     "manifest_version": 3,
-    "name": "GPT Codenav",
+    "name": "GPT Bookmarks",
     "version": "1.0.0",
-    "description": "Browser Extension with background, content, and web scripts",
+    "description": "Code blocks organizer for ChatGPT",
     "icons": {
         "16": "assets/16.png",
         "48": "assets/48.png",
@@ -34,8 +34,5 @@
             "resources": ["dist/web.js"],
             "matches": ["<all_urls>"]
         }
-    ],
-    "content_security_policy": {
-        "extension_pages": "script-src 'self'; object-src 'self'"
-    }
+    ]
 }
