@@ -2,6 +2,11 @@ import log from '../lib/loglevel'
 import { EVENTS } from '../glossary'
 import './dev'
 import { invariant } from 'outvariant'
+import { sendEvent } from './ga'
+
+chrome.runtime.onInstalled.addListener(() => {
+    sendEvent('extension_installed')
+})
 
 chrome.runtime.onMessage.addListener(async (request, sender) => {
     if (request.type === 'GET_COOKIE') {
@@ -37,6 +42,8 @@ chrome.runtime.onMessage.addListener(async (request, sender) => {
                 url: request.payload.url,
             },
         })
+    } else if (request.type === EVENTS.LOG_EVENT) {
+        sendEvent(request.payload.event)
     }
 })
 

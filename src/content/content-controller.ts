@@ -120,8 +120,21 @@ export class ContentController {
                     { type: EVENTS.TOGGLE_BOOKMARK_COMPLETED, payload: { metadata, index, isBookmarked } },
                     '*'
                 )
+
+                chrome.runtime.sendMessage({
+                    type: EVENTS.LOG_EVENT,
+                    payload: {
+                        event: 'toggle_bookmark',
+                    },
+                })
                 break
             case EVENTS.GET_ALL_BOOKMARKS:
+                chrome.runtime.sendMessage({
+                    type: EVENTS.LOG_EVENT,
+                    payload: {
+                        event: 'get_all_bookmarks',
+                    },
+                })
                 const bookmarks = await StorageService.getAllBookmarks()
                 window.postMessage(
                     {
@@ -132,6 +145,12 @@ export class ContentController {
                 )
                 break
             case EVENTS.OPEN_CHAT: {
+                chrome.runtime.sendMessage({
+                    type: EVENTS.LOG_EVENT,
+                    payload: {
+                        event: 'open_chat',
+                    },
+                })
                 const { chatId, bookmarkIndex, url } = event.data.payload
                 this.openChat(chatId, bookmarkIndex, url)
                 break
@@ -157,30 +176,16 @@ export class ContentController {
         const atag = document.querySelector(`a[href="${url}"]`)
         if (atag) {
             log.info('Sidebar link found', atag)
-            ;(atag as HTMLElement).click()
+                ; (atag as HTMLElement).click()
+            chrome.runtime.sendMessage({
+                type: EVENTS.LOG_EVENT,
+                payload: {
+                    event: 'emulate_chat_click',
+                },
+            })
             return true
         }
         return false
-    }
-
-    simulateTyping(element: HTMLInputElement, text: string, interval: number) {
-        log.info('Simulate typing')
-
-        let index = 0
-
-        // Function to type the next character
-        function typeNextChar() {
-            if (index < text.length) {
-                element.value += text[index]
-                index++
-                // Dispatch 'input' event to notify listeners
-                element.dispatchEvent(new Event('input', { bubbles: true }))
-                setTimeout(typeNextChar, interval)
-            }
-        }
-
-        // Start typing
-        typeNextChar()
     }
 
     async scrollToBookmark(bookmarkIndex: string) {
@@ -204,6 +209,12 @@ export class ContentController {
 
         log.info('Open chat', chatId, bookmarkIndex, url)
         if (!this.emulateChatClick(url)) {
+            chrome.runtime.sendMessage({
+                type: EVENTS.LOG_EVENT,
+                payload: {
+                    event: 'open_chat_http',
+                },
+            })
             window.location.href = url
         }
 
