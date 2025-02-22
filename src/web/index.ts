@@ -48,6 +48,7 @@ class WebpageController {
         } else if (response.ok && /backend-api\/conversation\/init$/.test(response.url)) {
             if (!location.pathname.includes('/c/')) {
                 this.injectBookmarksButton()
+                this.injectBookmarksModal()
             }
         }
     }

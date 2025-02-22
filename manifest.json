@@ -8,7 +8,7 @@
         "48": "assets/48.png",
         "128": "assets/128.png"
     },
-    "permissions": ["scripting", "activeTab", "storage", "cookies", "webRequest", "webNavigation"],
+    "permissions": ["storage", "cookies", "webNavigation"],
     "host_permissions": ["https://chatgpt.com/*", "https://chat.com/*"],
     "background": {
         "service_worker": "dist/background.js"

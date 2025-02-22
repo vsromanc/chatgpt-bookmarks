@@ -1,6 +1,5 @@
 import log from '../lib/loglevel'
 import { EVENTS } from '../glossary'
-import './dev'
 import { invariant } from 'outvariant'
 import { sendEvent } from './ga'
 
