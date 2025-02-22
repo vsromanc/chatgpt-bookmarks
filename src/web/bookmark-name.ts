@@ -20,15 +20,9 @@ export class BookmarkName extends BaseElement {
         return html`<span>✏️ ${this.name}</span>`
     }
 
-    static inject(index: number, name: string, lang: string) {
+    static getLanguageDiv(index: number) {
         const blocks = document.querySelectorAll('pre')
         const selectedBlock = blocks[index]
-        invariant(selectedBlock, 'Selected block not found')
-
-        const bookmarkName = document.createElement('bookmark-name') as BookmarkName
-        bookmarkName.bookmarkIndex = index
-        bookmarkName.name = name
-        bookmarkName.lang = lang
 
         const langDiv = document.evaluate(
             `(//pre)[${index + 1}]/div/div`,
@@ -38,28 +32,22 @@ export class BookmarkName extends BaseElement {
             null
         ).singleNodeValue as HTMLDivElement
         invariant(langDiv, 'Language div not found')
-
-        langDiv.replaceChildren(bookmarkName)
-        this.highlightBlock(selectedBlock)
+        return langDiv
     }
 
-    static highlightBlock(block: HTMLPreElement) {
-        const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)')
-        if (darkModeQuery.matches) {
-            block.style.border = '1px solid #777'
-        } else {
-            block.style.border = '1px solid #858585'
-        }
+    static inject(index: number, name: string, lang: string) {
+        const langDiv = this.getLanguageDiv(index)
 
-        function handleColorSchemeChange(event: MediaQueryListEvent) {
-            if (event.matches) {
-                block.style.border = '1px solid #777'
-            } else {
-                block.style.border = '1px solid #858585'
-            }
-        }
+        const bookmarkName = document.createElement('bookmark-name') as BookmarkName
+        bookmarkName.bookmarkIndex = index
+        bookmarkName.name = name
+        bookmarkName.lang = lang
 
-        // Modern browsers support addEventListener on MediaQueryList
-        darkModeQuery.addEventListener('change', handleColorSchemeChange)
+        langDiv.replaceChildren(bookmarkName)
+    }
+
+    static reset(index: number) {
+        const langDiv = this.getLanguageDiv(index)
+        langDiv.replaceChildren()
     }
 }

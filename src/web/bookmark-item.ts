@@ -7,20 +7,9 @@ import { EVENTS } from '../glossary'
 export class BookmarkItem extends BaseElement {
     static styles = css`
         :host {
-            /* Text colors */
-            --token-text-primary: #000;
-            --token-text-tertiary: #666;
-
             /* Interactive states */
-            --token-interactive-hover: #f0f0f0;
-        }
-
-        @media (prefers-color-scheme: dark) {
-            :host {
-                --token-text-primary: #fff;
-                --token-text-tertiary: #888;
-                --token-interactive-hover: #2f2f2f;
-            }
+            --item-active: var(--sidebar-surface-tertiary);
+            --item-hover: var(--sidebar-surface-secondary);
         }
 
         .sublist-item {
@@ -28,18 +17,14 @@ export class BookmarkItem extends BaseElement {
             border-radius: 0.5rem;
             cursor: pointer;
             font-size: 0.9em;
-            color: var(--token-text-tertiary);
-            transition: color 0.2s ease;
+            color: var(--text-primary);
         }
 
         .sublist-item.active {
-            background-color: #2f2f2f;
-            color: var(--token-text-primary);
+            background-color: var(--item-active);
         }
-
         .sublist-item:hover {
-            background-color: #2f2f2f;
-            color: var(--token-text-primary);
+            background-color: var(--item-hover);
         }
 
         .item-container {
@@ -71,6 +56,7 @@ export class BookmarkItem extends BaseElement {
 
     render() {
         return html`
+            <link rel="stylesheet" href="https://cdn.oaistatic.com/assets/root-efk4gswb.css">
             <div class="sublist-item ${this.active ? 'active' : ''}" @click=${this.handleClick}>
                 <div class="item-container">
                     <span class="item-text">${this.bookmark?.metadata?.name}</span>

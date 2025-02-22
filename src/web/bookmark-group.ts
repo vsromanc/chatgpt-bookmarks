@@ -8,12 +8,6 @@ export class BookmarkGroup extends LitElement {
         .parent-item {
             padding: 0.5rem;
             cursor: pointer;
-            color: var(--token-text-secondary);
-            transition: background 0.2s ease;
-        }
-
-        .parent-item:hover {
-            background: var(--token-main-surface-secondary);
         }
 
         .parent-item > .title {
@@ -21,16 +15,6 @@ export class BookmarkGroup extends LitElement {
             font-weight: 600;
             padding: 0.5rem;
             margin: 0;
-        }
-
-        .sublist {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease-out;
-        }
-
-        .parent-item.expanded .sublist {
-            max-height: 1000px;
         }
 
         .single-line {
@@ -44,7 +28,6 @@ export class BookmarkGroup extends LitElement {
     @property({ type: String }) activeBookmarkIndex = ''
     @property({ type: String }) chatId = ''
     @property({ type: String }) title = ''
-    @property({ type: Boolean }) expanded = false
     @property({ type: Array }) bookmarks: {
         [key: string]: {
             lang: string
@@ -57,10 +40,9 @@ export class BookmarkGroup extends LitElement {
         const bookmarkIndexes = Object.keys(this.bookmarks)
         return html`
             <div
-                class="parent-item single-line ${this.expanded ? 'expanded' : ''} ${this.activeChatId === this.chatId
+                class="parent-item single-line ${this.activeChatId === this.chatId
                     ? 'active'
                     : ''}"
-                @click=${this.toggle}
             >
                 <h3 class="title">${this.title}</h3>
                 <div class="sublist">
@@ -78,9 +60,5 @@ export class BookmarkGroup extends LitElement {
                 </div>
             </div>
         `
-    }
-
-    private toggle() {
-        this.dispatchEvent(new CustomEvent('group-toggled', { detail: this.title }))
     }
 }

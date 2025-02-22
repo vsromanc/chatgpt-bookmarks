@@ -8,13 +8,11 @@ import { BaseElement } from './base'
 export class BookmarksModal extends BaseElement {
     static styles = css`
         :host {
-            /* Light mode defaults */
             --token-main-surface-primary: #fff;
             --token-text-primary: #000;
             --token-main-surface-tertiary: #e0e0e0;
             --token-main-surface-secondary: #f5f5f5;
         }
-
         @media (prefers-color-scheme: dark) {
             :host {
                 /* Dark mode overrides */
@@ -28,12 +26,11 @@ export class BookmarksModal extends BaseElement {
         .modal {
             position: fixed;
             inset: 0;
-            background: rgba(0, 0, 0, 0.5);
             z-index: 1000;
         }
 
         .modal-content {
-            background: var(--token-main-surface-primary, #fff);
+            background: var(--sidebar-surface-primary);
             width: 900px;
             height: 70vh;
             position: absolute;
@@ -43,20 +40,18 @@ export class BookmarksModal extends BaseElement {
             border-radius: 0.5rem;
             display: flex;
             color: var(--token-text-primary);
-            border: 1px solid var(--token-main-surface-tertiary);
+            overflow: hidden;
         }
 
         .sidebar {
             width: 200px;
             border-right: 1px solid var(--token-main-surface-tertiary);
             overflow-y: auto;
-            background: #171717;
         }
 
         .main-view {
             flex: 1;
             overflow: auto;
-
             display: flex;
         }
 
@@ -65,7 +60,6 @@ export class BookmarksModal extends BaseElement {
             white-space: pre-wrap;
             font-family: monospace;
             padding: 1rem;
-            background: var(--token-main-surface-secondary, #f5f5f5);
             border-radius: 4px;
             color: var(--token-text-primary);
         }
@@ -95,11 +89,6 @@ export class BookmarksModal extends BaseElement {
         }
 
         @media (prefers-color-scheme: dark) {
-            .modal-content {
-                background: var(--token-main-surface-primary, #1e1e1e);
-                border-color: var(--token-main-surface-tertiary, #333);
-            }
-
             .code-view {
                 background: var(--token-main-surface-secondary, #252526);
             }
@@ -151,9 +140,6 @@ export class BookmarksModal extends BaseElement {
         bookmarkIndex: number
     } | null = null
 
-    @state()
-    private expandedGroups = new Set<string>()
-
     connectedCallback() {
         super.connectedCallback()
         window.addEventListener('message', this.handleWindowMessage)
@@ -171,13 +157,6 @@ export class BookmarksModal extends BaseElement {
         }
     }
 
-    private toggleGroup(groupTitle: string) {
-        this.debug('Toggle group:', groupTitle)
-
-        const newExpanded = new Set(this.expandedGroups)
-        newExpanded.has(groupTitle) ? newExpanded.delete(groupTitle) : newExpanded.add(groupTitle)
-        this.expandedGroups = newExpanded
-    }
 
     private selectBookmark(chatId: string, bookmarkIndex: number) {
         this.selected = {
@@ -199,9 +178,11 @@ export class BookmarksModal extends BaseElement {
             ? this.bookmarksData[this.selected.chatId].bookmarks[this.selected.bookmarkIndex]
             : null
 
+        const modalCss = 'modal-content focus:outline-none overflow-hidden h-[100%] md:max-h-[600px] md:min-h-[600px] md:max-w-[800px]';
         return html`
-            <div class="modal" ?hidden=${!this.isOpen} @click=${this.handleBackgroundClick} @close-modal=${this.hide}>
-                <div class="modal-content" @click=${(e: Event) => e.stopPropagation()}>
+            <link rel="stylesheet" href="https://cdn.oaistatic.com/assets/root-efk4gswb.css">
+            <div class="modal bg-black/50" ?hidden=${!this.isOpen} @click=${this.handleBackgroundClick} @close-modal=${this.hide}>
+                <div class="${modalCss}" @click=${(e: Event) => e.stopPropagation()}>
                     <div class="sidebar">
                         ${chatKeys.map(
                             chatId => html`
@@ -211,8 +192,6 @@ export class BookmarksModal extends BaseElement {
                                     .chatId=${chatId}
                                     .title=${this.bookmarksData[chatId].title}
                                     .bookmarks=${this.bookmarksData[chatId].bookmarks}
-                                    .expanded=${this.expandedGroups.has(chatId)}
-                                    @group-toggled=${() => this.toggleGroup(chatId)}
                                     @bookmark-selected=${(e: CustomEvent) =>
                                         this.selectBookmark(e.detail.chatId, e.detail.bookmarkId)}
                                 ></bookmark-group>

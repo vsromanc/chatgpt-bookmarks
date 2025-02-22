@@ -201,7 +201,7 @@ export class ContentController {
         const pre = (await this.findPreElementWithInterval(index)) as HTMLElement
 
         const container = document.querySelector(
-            'div[class^="react-scroll-to-bottom"] > div[class^="react-scroll-to-bottom"]'
+            '.composer-parent .overflow-y-auto'
         ) as HTMLDivElement
         invariant(container?.contains(pre), 'Scroll container or pre element not found')
         if (pre) {

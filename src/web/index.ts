@@ -104,7 +104,7 @@ class WebpageController {
     }
 
     public resetBookmarkName(index: number) {
-        log.debug('resetBookmarkName', index)
+        BookmarkName.reset(index)
         // BookmarkButton.updateBookmarkState(index, false)
     }
 }
