@@ -1,6 +1,6 @@
 {
     "manifest_version": 3,
-    "name": "GPT Bookmarks",
+    "name": "GPT Code Bookmarks",
     "version": "1.0.0",
     "description": "Code blocks organizer for ChatGPT",
     "icons": {
@@ -32,7 +32,7 @@
     "web_accessible_resources": [
         {
             "resources": ["web.js"],
-            "matches": ["<all_urls>"]
+            "matches": ["https://chatgpt.com/*", "https://chat.com/*"]
         }
     ]
 }
