@@ -1,5 +1,6 @@
 import { html, css } from 'lit'
 import { customElement, property, state } from 'lit/decorators.js'
+import { unsafeHTML } from 'lit/directives/unsafe-html.js'
 import { BaseElement } from './base'
 import { EVENTS } from '../glossary'
 
@@ -56,9 +57,10 @@ export class BookmarkItem extends BaseElement {
 
     render() {
         return html`
+            ${unsafeHTML(this.getRootCss()?.outerHTML)}
             <div class="sublist-item ${this.active ? 'active' : ''}" @click=${this.handleClick}>
                 <div class="item-container">
-                    <span class="item-text">${this.bookmark?.metadata?.name}</span>
+                    <span class="item-text truncate">${this.bookmark?.metadata?.name}</span>
                     <button class="link-icon" @click=${this.handleOpenChat}>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                             <path
