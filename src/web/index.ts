@@ -67,6 +67,9 @@ class WebpageController {
         await Promise.race([uiReadyPromise, awaitTimeout(5000, 'No corresponding div was found matching API response')])
         await awaitTimeout(50)
 
+        if (!this.bookmarks) {
+            await awaitTimeout(300);
+        }
         invariant(this.bookmarks, 'Bookmarks are not initialized')
 
         BookmarkManager.addBookmarkButtons(this.bookmarks)

@@ -180,12 +180,12 @@ export class BookmarksModal extends BaseElement {
 
         const modalCss = 'modal-content focus:outline-none overflow-hidden h-[100%] md:max-h-[600px] md:min-h-[600px] md:max-w-[800px]';
         return html`
-            <link rel="stylesheet" href="https://cdn.oaistatic.com/assets/root-efk4gswb.css">
+            ${unsafeHTML(this.getRootCss()?.outerHTML)}
             <div class="modal bg-black/50" ?hidden=${!this.isOpen} @click=${this.handleBackgroundClick} @close-modal=${this.hide}>
                 <div class="${modalCss}" @click=${(e: Event) => e.stopPropagation()}>
                     <div class="sidebar">
                         ${chatKeys.map(
-                            chatId => html`
+            chatId => html`
                                 <bookmark-group
                                     .activeChatId=${this.selected?.chatId}
                                     .activeBookmarkIndex=${this.selected?.bookmarkIndex}
@@ -193,10 +193,10 @@ export class BookmarksModal extends BaseElement {
                                     .title=${this.bookmarksData[chatId].title}
                                     .bookmarks=${this.bookmarksData[chatId].bookmarks}
                                     @bookmark-selected=${(e: CustomEvent) =>
-                                        this.selectBookmark(e.detail.chatId, e.detail.bookmarkId)}
+                    this.selectBookmark(e.detail.chatId, e.detail.bookmarkId)}
                                 ></bookmark-group>
                             `
-                        )}
+        )}
                     </div>
 
                     <div class="main-view">

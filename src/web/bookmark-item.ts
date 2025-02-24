@@ -56,7 +56,6 @@ export class BookmarkItem extends BaseElement {
 
     render() {
         return html`
-            <link rel="stylesheet" href="https://cdn.oaistatic.com/assets/root-efk4gswb.css">
             <div class="sublist-item ${this.active ? 'active' : ''}" @click=${this.handleClick}>
                 <div class="item-container">
                     <span class="item-text">${this.bookmark?.metadata?.name}</span>

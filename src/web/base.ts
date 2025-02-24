@@ -44,4 +44,8 @@ export class BaseElement extends LitElement {
         this.dispatchEvent(event)
         return event
     }
+
+    getRootCss() {
+        return document.querySelector('link[rel="stylesheet"][href*="/assets/root"]');
+    }
 }
