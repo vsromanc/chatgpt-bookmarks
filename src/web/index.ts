@@ -68,7 +68,7 @@ class WebpageController {
         await awaitTimeout(50)
 
         if (!this.bookmarks) {
-            await awaitTimeout(300);
+            await awaitTimeout(500);
         }
         invariant(this.bookmarks, 'Bookmarks are not initialized')
 

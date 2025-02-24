@@ -30,7 +30,7 @@ export class ContentController {
     }
 
     private async injectWebScript() {
-        await injectWebScript(`${process.env.APP_NAME}-web-script`, 'dist/web.js')
+        await injectWebScript(`${process.env.APP_NAME}-web-script`, 'web.js')
         log.info('Web script injected')
     }
 

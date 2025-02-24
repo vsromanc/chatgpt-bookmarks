@@ -50,7 +50,7 @@ module.exports = {
             'process.env.EXTENSION_VERSION': JSON.stringify(manifest.version),
         }),
         new CopyPlugin({
-            patterns: [{ from: 'assets', to: 'assets' }],
+            patterns: [{ from: 'assets', to: 'assets' }, { from: 'manifest.json', to: '' }],
         }),
     ],
 }

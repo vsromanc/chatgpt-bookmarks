@@ -11,7 +11,7 @@
     "permissions": ["storage", "cookies", "webNavigation"],
     "host_permissions": ["https://chatgpt.com/*", "https://chat.com/*"],
     "background": {
-        "service_worker": "dist/background.js"
+        "service_worker": "background.js"
     },
     "commands": {
         "reload-extension": {
@@ -25,13 +25,13 @@
     "content_scripts": [
         {
             "matches": ["https://chatgpt.com/*", "https://chat.com/*"],
-            "js": ["dist/content.js"],
+            "js": ["content.js"],
             "run_at": "document_start"
         }
     ],
     "web_accessible_resources": [
         {
-            "resources": ["dist/web.js"],
+            "resources": ["web.js"],
             "matches": ["<all_urls>"]
         }
     ]
