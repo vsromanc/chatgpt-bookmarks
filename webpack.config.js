@@ -2,6 +2,7 @@ const Dotenv = require('dotenv-webpack')
 const DefinePlugin = require('webpack').DefinePlugin
 const path = require('path')
 const CopyPlugin = require('copy-webpack-plugin')
+const TerserPlugin = require('terser-webpack-plugin')
 const manifest = require('./manifest.json')
 
 const mode = process.env.NODE_ENV || 'development'
@@ -9,7 +10,7 @@ const isProd = mode === 'production'
 
 module.exports = {
     mode,
-    devtool: 'source-map',
+    devtool: isProd ? false : 'source-map',
     entry: {
         background: './src/background/index.ts',
         content: './src/content/index.ts',
@@ -53,4 +54,17 @@ module.exports = {
             patterns: [{ from: 'assets', to: 'assets' }, { from: 'manifest.json', to: '' }],
         }),
     ],
+    optimization: {
+        minimize: true,
+        minimizer: [
+            new TerserPlugin({
+                terserOptions: {
+                    mangle: false,
+                    format: {
+                        beautify: true,
+                    }
+                }
+            }),
+        ],
+    },
 }
