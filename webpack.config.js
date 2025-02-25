@@ -53,18 +53,5 @@ module.exports = {
         new CopyPlugin({
             patterns: [{ from: 'assets', to: 'assets' }, { from: 'manifest.json', to: '' }],
         }),
-    ],
-    optimization: {
-        minimize: true,
-        minimizer: [
-            new TerserPlugin({
-                terserOptions: {
-                    mangle: false,
-                    format: {
-                        beautify: true,
-                    }
-                }
-            }),
-        ],
-    },
+    ]
 }
