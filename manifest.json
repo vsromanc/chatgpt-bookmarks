@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "GPT Code Bookmarks",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "Code blocks organizer for ChatGPT",
     "icons": {
         "16": "assets/16.png",
