@@ -1,5 +1,8 @@
 # ChatGPT Bookmarks
 
+👉 [Get it on the Chrome Web Store](https://chromewebstore.google.com/detail/deckjpbhfdckfcjnignllkcpippcmdlp)
+
+
 ## Example usage
 
 <p>
